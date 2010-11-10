@@ -6,4 +6,9 @@ doc/**/auto
 *.log
 *.bbl
 *.blg
+*.len
+*.nav
+*.out
+*.snm
+*.toc
 *.*~

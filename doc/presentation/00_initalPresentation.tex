@@ -1,0 +1,108 @@
+\documentclass[accentcolor=tud9b, colorbacktitle, inverttitle]{tudbeamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+% \usepackage{cite}
+% \usepackage{longtable}
+% \usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase} \title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Task description} \subtitle{UIMA Software
+  Project WS 2010/2011}
+
+\begin{titleframe}
+\end{titleframe}
+
+\begin{frame}
+  \frametitle{Introduction}
+  \begin{itemize}
+  \item Noun-compounding: Combination of two existing words to another
+    new word.
+  \item Powerful feature in the German language
+  \item Example: \emph{Blumensträuße} (flower bouquet) ->
+    \emph{Blumen} (flower) + \emph{Sträuße} (bouquet)
+  \end{itemize}
+
+  Problem in many NLP task
+  \begin{itemize}
+  \item Search for a compound word should also include result with the
+    words splitted
+  \item Example: \emph{Lackschicht} (paint layer) should return
+    results with the words \emph{Lackschicht} and \emph{Schicht aus
+      Lack} (layer of paint)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Problem definition}
+  \begin{itemize}
+  \item Compounds are formed with nouns, verbs and adjectives.
+  \item Compound words can be compound with other
+  \item Linking morphemes are added between words:
+    \emph{Tag(es)+ration}
+  \item Different context for different splits: \emph{Tag(es)+ration}
+    vs. \emph{Tag(es)+rat+ion}
+  \end{itemize}
+
+
+  Main algorithm \cite{alf2008}
+  \begin{enumerate}
+  \item Calculate every possible way of splitting a word in one or
+    more parts
+  \item Score those parts according to some weighting function
+  \item Take the highest-scoring decomposition. If it contains one
+    part, it means that the word in not a compound.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Roadmap}
+
+  \begin{tabular}{|l|l|}
+  \hline
+  \textbf{Week} & \textbf{Goals} \\ \hline
+  08.11 - 14.11 & get familiar with the project; choosing dictionary \\ \hline
+  15.11 - 21.11 & access to dictionary \\ \hline
+  22.11 - 28.11 & access Google Web1T; splitting words \\ \hline
+  29.11 - 05.06 & splitting words \\ \hline
+  06.12 - 12.12 & splitting words \\ \hline
+  13.12 - 19.12 & evaluation and testing \\ \hline
+  20.12 - 26.12 & weighting function (Christmas) \\ \hline
+  27.12 - 02.01 & weighting function (Christmas, new years eve) \\ \hline
+  03.01 - 09.01 & weighting function \\ \hline
+  10.01 - 16.01 & no time (vacation) \\ \hline
+  17.01 - 23.01 & evaluation and testing \\ \hline
+  24.01 - 30.01 & UIMA Component \\ \hline
+  31.01 - 06.02 & project cleanup \\
+  \hline
+  \end{tabular}
+\end{frame}
+
+\begin{frame}
+  \frametitle{End}
+  
+\begin{block}{Questions}
+  Ask now, or later.
+\end{block}
+
+\begin{block}{More information}
+  Code, documentation and slides are available on github: \url{https://github.com/jenshaase/noun-decompounds}
+\end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{References}
+  
+  \bibliographystyle{alpha}
+  \bibliography{../documents/00_taskdescription}
+
+\end{frame}
+
+\end{document}
