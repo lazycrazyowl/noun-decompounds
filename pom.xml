@@ -8,6 +8,31 @@
   <groupId>de.tudarmstadt.ukp.teaching.uima</groupId>
   <artifactId>de.tudarmstadt.ukp.teaching.uima.nounDecompounding</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <build>
+  	<plugins>
+  		<plugin>
+  			<groupId>com.mycila.maven-license-plugin</groupId>
+  			<artifactId>maven-license-plugin</artifactId>
+  			<configuration>
+                <header>src/etc/header.txt</header>
+                <strictCheck>true</strictCheck>
+                <includes>
+                    <include>src/main/java/**</include>
+                    <include>src/test/java/**</include>
+                    <include>bin/**</include>
+                    <include>doc/**/*.tex</include>
+                </includes>
+                <properties>
+                    <year>2010</year>
+                </properties>
+                <mapping>
+                	<tex>PERCENT3_STYLE</tex>
+                </mapping>
+            </configuration>
+  			<version>1.8.0</version>
+  		</plugin>
+  	</plugins>
+  </build>
   <dependencies>
   	<dependency>
   		<groupId>junit</groupId>
