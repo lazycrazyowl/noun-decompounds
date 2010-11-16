@@ -12,3 +12,6 @@ doc/**/auto
 *.snm
 *.toc
 *.*~
+
+target/classes
+target/test-classes
