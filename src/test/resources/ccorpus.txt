@@ -1,0 +1,10 @@
+zugangsliste zu{PREP}+gang|s{A,N}+liste{N}
+fachkameras fach{V,N}+kamera(s){N}
+doppelprozessormaschine doppel{N,V}+prozessor{N}+maschine{N}
+filmtauscher film{N,V}+tauscher{N}
+minimalanforderungen minimal{A}+anforderung(en){N}
+berufungsinstanz berufung|s{N}+instanz{N}
+bleistiftstriche blei{N}+stift{N,V}+strich(e){N}
+standardgemäße standard{N}+gemäß(e){A}
+fernmeldeunion fern{A}+meld|e{V}+union{N}
+ortsnetzmonopol ortsnetzmonopol
