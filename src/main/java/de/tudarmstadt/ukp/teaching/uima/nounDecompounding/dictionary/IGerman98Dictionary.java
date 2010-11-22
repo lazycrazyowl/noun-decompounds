@@ -60,7 +60,10 @@ public class IGerman98Dictionary extends SimpleDictionary {
 				continue;
 			}
 			String[] split = line.split("/");
-			words.add(split[0]);
+			if (split[0].length() > 2) {
+				// Add only words with a min length of 3
+				words.add(split[0].toLowerCase());
+			}
 		}
 		
 		return words;

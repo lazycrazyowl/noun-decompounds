@@ -49,8 +49,8 @@ public class SplitTest {
 		e2.setWord("plan");
 		
 		Split s = new Split();
-		s.addSplitElement(e1);
-		s.addSplitElement(e2);
+		s.appendSplitElement(e1);
+		s.appendSplitElement(e2);
 		
 		Assert.assertEquals("aktion(s)+plan", s.toString());
 	}
@@ -65,8 +65,8 @@ public class SplitTest {
 		e2.setWord("plan");
 		
 		Split s1 = new Split();
-		s1.addSplitElement(e1);
-		s1.addSplitElement(e2);
+		s1.appendSplitElement(e1);
+		s1.appendSplitElement(e2);
 		
 		SplitElement e3 = new SplitElement();
 		e3.setWord("aktion");
@@ -76,8 +76,8 @@ public class SplitTest {
 		e4.setWord("plan");
 		
 		Split s2 = new Split();
-		s2.addSplitElement(e3);
-		s2.addSplitElement(e4);
+		s2.appendSplitElement(e3);
+		s2.appendSplitElement(e4);
 		
 		Assert.assertTrue(s1.equals(s2));
 		

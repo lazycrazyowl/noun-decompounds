@@ -60,8 +60,9 @@ public class SplitterEvaluation {
 	 * Returns the recall: Number of correct / Number of total
 	 * 
 	 * @param algo
+	 * @param limit If you only want to test on a small subset. Set 0 to test all.
 	 */
-	public float evaluate(ISplitAlgorithm algo) {
+	public float evaluate(ISplitAlgorithm algo, int limit) {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(ccorpus));
 			
@@ -94,6 +95,10 @@ public class SplitterEvaluation {
 				
 				// Increment total numbers
 				total++;
+				
+				if (limit > 0 && total > limit) {
+					break;
+				}
 			}
 			
 			// Return result
@@ -104,6 +109,17 @@ public class SplitterEvaluation {
 		}
 		
 		return Float.NaN;
+	}
+	
+	/**
+	 * Evaluates for a given algorithm.
+	 * 
+	 * Returns the recall: Number of correct / Number of total
+	 * 
+	 * @param algo
+	 */
+	public float evaluate(ISplitAlgorithm algo) {
+		return this.evaluate(algo, 0);
 	}
 	
 	/**
@@ -157,7 +173,7 @@ public class SplitterEvaluation {
 				e.setMorpheme(surface.substring(lemma.length()));
 			}
 			
-			s.addSplitElement(e);
+			s.appendSplitElement(e);
 		}
 		
 		return s;

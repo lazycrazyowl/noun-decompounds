@@ -56,6 +56,18 @@ public class SimpleDictionary implements IDictionary {
 		}
 	}
 	
+	/**
+	 * Create a simple dictionary from a
+	 * list of string. This can be used for testing
+	 * @param words A list of words
+	 */
+	public SimpleDictionary(String... words) {
+		this.words = new HashSet<String>();
+		for (String word : words) {
+			this.words.add(word.toLowerCase());
+		}
+	}
+	
 	@Override
 	public boolean contains(String word) {
 		return this.words.contains(word);
@@ -71,7 +83,7 @@ public class SimpleDictionary implements IDictionary {
 		BufferedReader reader = new BufferedReader(new FileReader(this.dict));
 		String line;
 		while ((line = reader.readLine()) != null) {
-			words.add(line);
+			words.add(line.toLowerCase());
 		}
 		
 		return words;

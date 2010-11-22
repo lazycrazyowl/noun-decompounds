@@ -52,7 +52,7 @@ public class Split {
 		String[] elems = split.split("\\+");
 		
 		for (String string : elems) {
-			s.addSplitElement(SplitElement.createFromString(string));
+			s.appendSplitElement(SplitElement.createFromString(string));
 		}
 		
 		return s;
@@ -78,11 +78,19 @@ public class Split {
 	}
 	
 	/**
-	 * Adds a split element 
+	 * Adds a split element at the end
 	 * @param split
 	 */
-	public void addSplitElement(SplitElement split) {
+	public void appendSplitElement(SplitElement split) {
 		this.splits.add(split);
+	}
+	
+	/**
+	 * Adds a split element to the beginning
+	 * @param split
+	 */
+	public void prependSplitElement(SplitElement split) {
+		this.splits.add(0, split);
 	}
 
 	/**
@@ -99,5 +107,9 @@ public class Split {
 	 */
 	public void setSplits(List<SplitElement> splits) {
 		this.splits = splits;
+	}
+
+	public void addAll(List<SplitElement> splits) {
+		this.splits.addAll(splits);
 	}
 }
