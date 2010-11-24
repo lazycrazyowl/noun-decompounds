@@ -1,0 +1,102 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[11pt, accentcolor=tud9b, nochapname]{tudexercise}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+% \usepackage{cite}
+\usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase}
+\title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Report Week 2}
+\subtitle{UIMA Software Project WS 2010/2011}
+\subsubtitle{Jens Haase}
+\date{\today}
+\maketitle
+
+\section{Work done in the last week}
+
+\subsection{Corpus and Evaluation}
+Before I want to start to create a first splitting algorithm, I want to have a method to evaluate the algorithm. For that the corpus of Marek \url{http://diotavelli.net/files/ccorpus.txt} is used. A reader reads the file and creates a object structure for each split. The word annotation like, \{N\} or \{A,N\} are removed. For evaluation we are only interested in the splits and the linking morphemes, and not the word form.
+
+With the corpus it is now possible to create a evaluation class for the splitting algorithm. A splitting algorithm always returns a list of all splits. The evaluation class will check if the correct split is in the list of all possible splits.
+
+\subsection{Simple splitting algorithm}
+Starting with a simple splitting algorithm has the benefits that a lot of possible splitting cases can be found. The algorithm than can be improved from simple to advanced.
+
+The first draft of my algorithm iterates from left to right over the word. It splits the word at the current position and checks if the left word is in a dictionary. If the left word is in the dictionary the right side will be evaluated with the same algorithm. If the right side can not be evaluated we check if the beginning of the right word contains a morpheme. The morpheme then will be removed from the right word and the smaller right word will be evaluated again. At the end we have a split with the smallest word forms.
+
+In the next step we try to recombine neighbors of the split. \emph{Aktionsplan} will be evaluated by the first part to \emph{Akt+ion(s)+plan}. The recombine will now combine \emph{Akt} and \emph{ion(s)} to \emph{Aktion(s)} and check if the word is in the dictionary. If true we add this new split to the list of all possible splits.
+
+At the end the algorithm returns a list of all possible splits.
+
+\subsection{Current Evaluation}
+The current evaluation of the splitting algorithm has a recall of 0.45. This is currently not very much, but there are a few bugs in the recombination of words. Another big problem is that not all needed words are in the dictionary. That means that most of the words will never be splitted. For example, the dictionary contains \emph{berechnen} but not \emph{berechnung} and because of that \emph{berechnungsarten} can not be splitted. The word \emph{berechnung} can be calculated in using the flags behind each word in the IGerman98 Dictionary. This requires some extra work, which is not done yet.
+
+The good thing is that I only found one totally false splitted word in the first 200 words. The word \emph{minimalanforderungen} must be splitted to \emph{minimal+anforderung(en)} but is currently splitted to \emph{minima+lan+ford(e)+run+gen}. The recombination will here also not help.
+
+\subsection{Time Tracking}
+
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2010-11-18 & Evaluation Corpus, Splitter Evaluation & 4 \\ \hline
+  2010-11-20 & Simple Splitter & 4 \\ \hline
+  2010-11-21 & Simple Splitter & 4 \\ \hline
+  2010-11-22 & Evaluating current status of splitting algorithm & 1 \\ \hline
+  2010-11-24 & Report writing & 2 \\ \hline
+\end{tabular}
+
+\section{Plan for next week}
+As mentioned above the current dictionary is not optimal. The IGerman98 Dictionary can be improved by using the flags. Another option will be the Google Web1T unigrams.
+
+With a better dictionary the recall of the splitter will hopefully be better. The we can decide if the splitter can be improved or we have to use a total different splitting algorithm. Other splitting options are:
+
+\begin{itemize}
+  \item Do the same from right to left
+  \item Combine result from ``Left to right'' and ``right to left''
+  \item Use a data-driven algorithm as mention by Larson et al. \url{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.35.7240\&rep=rep1\&type=pdf}
+\end{itemize}
+
+
+\vspace{10pt}
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2010-11-25 & Better dictionary reader & 4 \\ \hline
+  2010-11-26 & Improve Splitter & 4 \\ \hline
+  2010-11-27 & Improve Splitter or try complete other algorithm & 4 \\ \hline
+  2010-11-29 & Evaluating current status of splitting algorithm & 1 \\ \hline
+  2010-11-31 & Report writing & 2 \\ \hline
+\end{tabular}
+
+\end{document}
