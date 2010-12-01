@@ -120,6 +120,14 @@ public class SplitElement {
 	public String getMorpheme() {
 		return morpheme;
 	}
+	
+	/**
+	 * Checks if this element has an morpheme
+	 * @return
+	 */
+	public boolean hasMorpheme() {
+		return this.morpheme != null;
+	}
 
 	/**
 	 * Sets the linking morpheme of the split element
@@ -127,5 +135,19 @@ public class SplitElement {
 	 */
 	public void setMorpheme(String morpheme) {
 		this.morpheme = morpheme;
+	}
+
+	/**
+	 * Similar to the toString method, but combines morpheme and word
+	 * @return
+	 */
+	public String toStringWithoutMorpheme() {
+		String s = this.word;
+		
+		if (this.morpheme != null) {
+			s += this.morpheme;
+		}
+		
+		return s;
 	}
 }

@@ -71,7 +71,7 @@ public class SplitterEvaluation {
 			Split split;
 			List<Split> algoSplits;
 			
-			int total = 0, correct = 0;
+			int total = 0, correct = 0, correctWithoutMorpheme = 0;
 			
 			while ((line = reader.readLine()) != null) {
 				// Prepare data
@@ -81,17 +81,22 @@ public class SplitterEvaluation {
 				
 				// Try to find
 				boolean found = false;
+				boolean foundWithoutMorpheme = false;
 				for (Split s : algoSplits) {
 					if (split.equals(s)) {
 						// We found a match. Increment correct and break loop
 						correct++;
 						found = true;
-						break;
+					}
+					
+					if (split.equalWithoutMorpheme(s)) {
+						correctWithoutMorpheme++;
+						foundWithoutMorpheme = true;
 					}
 				}
 				
 				// Print errors for wrong
-				if (!found) System.err.println("Not found: " + data[0] + "\t Correct one is: " + split.toString() + "\t Yours: " + algo.split(data[0]));
+				if (!found) System.err.println("Not found "+ ((foundWithoutMorpheme) ? "(but without morpheme)" : "") +": " + data[0] + "\t Correct one is: " + split.toString() + "\t Yours: " + algo.split(data[0]));
 				
 				// Increment total numbers
 				total++;
@@ -100,6 +105,8 @@ public class SplitterEvaluation {
 					break;
 				}
 			}
+			
+			System.out.println("Correct without morphemes: " + ((float) correctWithoutMorpheme / (float) total));
 			
 			// Return result
 			return (float) correct / (float) total;

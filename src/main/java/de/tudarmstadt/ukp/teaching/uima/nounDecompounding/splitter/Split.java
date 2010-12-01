@@ -30,7 +30,6 @@ import java.util.List;
  * This container stores on split of all possible splits.
  * 
  * @author Jens Haase <je.haase@google.com>
- *
  */
 public class Split {
 
@@ -109,7 +108,45 @@ public class Split {
 		this.splits = splits;
 	}
 
+	/**
+	 * Adds a list of split elements.
+	 * @param splits
+	 */
 	public void addAll(List<SplitElement> splits) {
 		this.splits.addAll(splits);
+	}
+
+	/**
+	 * Similar to the equals method, but combines morpheme and word
+	 * @param obj
+	 * @return
+	 */
+	public boolean equalWithoutMorpheme(Split obj) {
+		return this.toStringWithoutMorpheme().equals(obj.toStringWithoutMorpheme());
+	}
+
+	/**
+	 * Similar to the toString method, but combines morpheme and word
+	 * @return
+	 */
+	private String toStringWithoutMorpheme() {
+		String s = "";
+		
+		for (int i = 0; i < this.splits.size(); i++) {
+			s += this.splits.get(i).toStringWithoutMorpheme();
+			if (i<this.splits.size()-1) {
+				s += "+";
+			}
+		}
+		
+		return s;
+	}
+	
+	/**
+	 * Creates a copy of this element.
+	 * @return
+	 */
+	public Split createCopy() {
+		return Split.createFromString(this.toString());
 	}
 }
