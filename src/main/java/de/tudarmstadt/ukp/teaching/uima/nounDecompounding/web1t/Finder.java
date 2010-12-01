@@ -31,19 +31,24 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary;
 
 /**
  * This class searches on the Lucene Index for n-grams.
  * 
  * @author Jens Haase <je.haase@googlemail.com>
  */
-public class Finder {
+public class Finder implements IDictionary {
 
 	IndexReader ir;
 	IndexSearcher searcher;
@@ -86,8 +91,13 @@ public class Finder {
 	public List<NGram> find(String[] token) {
 		List<NGram> ngrams = new ArrayList<NGram>();
 		
+		BooleanQuery q = new BooleanQuery();
+		for (String t : token) {
+			q.add(new TermQuery(new Term("gram", t)), Occur.MUST);
+		}
+		
 		try {
-			ScoreDoc[] results = searcher.search(parser.parse(this.buildQuery(token)), 100).scoreDocs;
+			ScoreDoc[] results = searcher.search(q, 100).scoreDocs;
 			Document doc;
 			
 			for (ScoreDoc scoreDoc : results) {
@@ -96,29 +106,21 @@ public class Finder {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
 		}
 		
 		return ngrams;
 	}
-	
-	/**
-	 * Build a lucene query string
-	 * from a list of token
-	 * @param token A list of token
-	 * @return
-	 */
-	private String buildQuery(String[] token) {
-		String query = "";
+
+	@Override
+	public boolean contains(String word) {
+		List<NGram> possible = this.find(word);
 		
-		for (int i = 0; i < token.length; i++) {
-			query += "gram:" + token[i];
-			if (i != token.length - 1) {
-				query += " AND ";
+		for (NGram nGram : possible) {
+			if (nGram.getGram().equals(word)) {
+				return true;
 			}
 		}
 		
-		return query;
+		return false;
 	}
 }

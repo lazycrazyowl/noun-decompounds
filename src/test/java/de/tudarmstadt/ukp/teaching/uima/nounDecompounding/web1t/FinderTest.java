@@ -48,8 +48,8 @@ public class FinderTest {
 	
 	@Test
 	public void testFinder() throws Exception {
-		// Search and check if data is correct
 		Finder f = new Finder(index);
+		// Search and check if data is correct
 		List<NGram> result = f.find("couch");
 		Assert.assertEquals(1, result.size());
 		Assert.assertEquals("relax on the couch", result.get(0).getGram());
