@@ -24,10 +24,17 @@ package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.igerman98.Affix;
 
 /**
  * The igerman98 dictionary from www.j3e.de/ispell/igerman98
@@ -43,8 +50,22 @@ import java.util.Set;
  */
 public class IGerman98Dictionary extends SimpleDictionary {
 
-	public IGerman98Dictionary(File dict) {
-		super(dict);
+	private static final String PREFIX_KEY = "PFX";
+	private static final String SUFFIX_KEY = "SFX";
+	
+	private File affix;
+	private Map<Character, List<Affix>> affixes = new HashMap<Character, List<Affix>>();
+
+	public IGerman98Dictionary(File dict, File affix) {
+		this.affix = affix;
+		this.readAffixFile();
+		
+		this.setDict(dict);
+		try {
+			this.setWords(this.readFileToSet());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -60,14 +81,86 @@ public class IGerman98Dictionary extends SimpleDictionary {
 				continue;
 			}
 			String[] split = line.split("/");
-			if (split[0].length() > 2) {
-				// Add only words with a min length of 3
-				words.add(split[0].toLowerCase());
+			String word = split[0].toLowerCase();
+			char[] flags = {};
+			
+			if (split.length > 1) {
+				flags = split[1].toCharArray();
+			}
+			
+			if (word.length() > 2) {
+				words.add(word);
+			}
+			
+			if (flags.length > 0) {
+				words.addAll(this.buildWords(word, flags));
 			}
 		}
 		
 		return words;
 	}
 
+	protected void readAffixFile() {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(this.affix));
+			
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith(PREFIX_KEY) || line.startsWith(SUFFIX_KEY)) {
+					this.parseAffix(line, reader);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private void parseAffix(String header, BufferedReader reader) throws IOException {
+		String args[] = header.split("\\s+");
+		
+		boolean crossProduct = args[2].equals("Y");
+		int numLines = Integer.parseInt(args[3]);
+		
+		for (int i = 0; i < numLines; i++) {
+			String line = reader.readLine();
+			String ruleArgs[] = line.split("\\s+");
+			Character flag = ruleArgs[1].toCharArray()[0];
+			
+			Affix a = new Affix(args[0]);
+			a.setCrossProduct(crossProduct);
+			a.setFlag(flag);
+			a.setStripping(ruleArgs[2]);
+			a.setAffix(ruleArgs[3]);
+			a.setCondition(ruleArgs[4]);
+			
+			List<Affix> list = this.affixes.get(flag);
+			if (list == null) {
+				list = new ArrayList<Affix>();
+				this.affixes.put(flag, list);
+			}
+			list.add(a);
+		}
+	}
 	
+	protected List<String> buildWords(String word, char[] flags) {
+		List<String> words = new ArrayList<String>();
+		for (char c : flags) {
+			List<Affix> aff = this.affixes.get(new Character(c));
+			if (aff == null) {
+				continue;
+			}
+			for (Affix affix : aff) {
+				String w = affix.handleWord(word);
+				if (w != null && w.length() > 2) {
+					words.add(w);
+				}
+			}
+		}
+		
+		return words;
+	}
 }
