@@ -30,6 +30,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.LinkingMorphemes;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.SplitterEvaluation;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 
 /**
  * Implements a simple left to right split algorithm.
@@ -63,20 +64,28 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 		word = word.toLowerCase();
 		
 		Split s = this.ltrSplit(word);
-		List<Split> split = new ArrayList<Split>();
+		List<Split> result = new ArrayList<Split>();
 		
 		if (s != null) {
-			split = this.combine(this.ltrSplit(word));
+			List<Split> combination = this.combine(s);
+			for (Split split : combination) {
+				result.addAll(this.morpheme(split.getSplits()));
+			}
 		} else {
 			s = new Split();
 			s.appendSplitElement(new SplitElement(word));
-			split.add(s);
+			result.add(s);
 		}
 
-		return split;
+		return result;
 	}
 	
-	
+	/**
+	 * The basic split algorithm. Moves the word from left to right
+	 * and checks for valid words.
+	 * @param word
+	 * @return
+	 */
 	protected Split ltrSplit(String word) {
 		Split rightSplit;
 		
@@ -131,7 +140,73 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 			return null;
 		}
 	}
+
+	/**
+	 * Checks for every word with a morpheme if it is also with morpheme in the dict
+	 * and creates all possible combination.
+	 * 
+	 * Example: If the split is "Akt+ion(s)+plan" and the word "ions" is in the dict,
+	 * 	the return value is {Akt+ion(s)+plan, Akt+ions+plan}
+	 * @param elements
+	 * @return
+	 */
+	protected List<Split> morpheme(List<SplitElement> elements) {
+		// Split list in first and rest
+		SplitElement first = elements.get(0);
+		List<SplitElement> rest = elements.subList(1, elements.size());
+		
+		// Create word with morpheme and word without morpheme
+		SplitElement element1 = first;
+		SplitElement element2 = null;
+		if (first.hasMorpheme() && this.dict.contains(first.getWord() + first.getMorpheme())) {
+			element2 = new SplitElement(first.getWord() + first.getMorpheme());
+		}
+		
+		
+		List<Split> result = new ArrayList<Split>();
+		
+		if (rest.isEmpty()) {
+			// Leaf node. Just return the two word
+			Split s1 = new Split();
+			s1.appendSplitElement(element1);
+			result.add(s1);
+			
+			if (element2 != null) {
+				Split s2 = new Split();
+				s2.appendSplitElement(element2);
+				result.add(s2);
+			}
+			
+			
+			return result;
+		} else {
+			List<Split> children = this.morpheme(rest);
+			
+			for (Split child : children) {
+				Split s1 = child.createCopy();
+				s1.prependSplitElement(element1);
+				result.add(s1);
+				
+				if (element2 != null) {
+					Split s2 = child.createCopy();
+					s2.prependSplitElement(element2);
+					result.add(s2);
+				}
+			}
+			
+			return result;
+		}
+	}
 	
+	/**
+	 * The basic left to right splitting algorithm
+	 * has only small word. This function will combine
+	 * single word to new word and checks if they are in
+	 * the dictioary.
+	 * 
+	 * @param split
+	 * @return
+	 */
 	protected List<Split> combine(Split split) {
 		List<Split> list = new ArrayList<Split>();
 		List<SplitElement> elements = split.getSplits();
@@ -190,13 +265,15 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 	}
 
 	public static void main(String[] args) {
-		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"));
+		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
+		IDictionary web1t = new Finder(new File("/home/jens/Desktop/web1tIndex"));
 		
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
-		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
+		LeftToRightSplitAlgorithm algo1 = new LeftToRightSplitAlgorithm(dict, morphemes); // Algorithm 1 with IGerman98 Dictionary
+		LeftToRightSplitAlgorithm algo2 = new LeftToRightSplitAlgorithm(web1t, morphemes); // Algorithm 2 with Web1t Dictionary
 		
 		SplitterEvaluation e = new SplitterEvaluation(new File("src/main/resources/evaluation/ccorpus.txt"));
-		float result = e.evaluate(algo);
+		float result = e.evaluate(algo1);
 		
 		System.out.println("Result " + result);
 	}
