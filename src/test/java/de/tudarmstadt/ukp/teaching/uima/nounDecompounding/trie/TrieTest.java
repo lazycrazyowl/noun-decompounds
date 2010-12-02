@@ -59,7 +59,7 @@ public class TrieTest {
 	@Test
 	public void testSimpleDict() {
 		IGerman98Dictionary dict = new IGerman98Dictionary(new File("src/test/resources/dic/igerman98.dic"), new File("src/test/resources/dic/igerman98.aff"));
-		Trie t = Trie.createForIGerman98(dict);
+		Trie t = Trie.createForDict(dict);
 		
 		Assert.assertEquals(new Integer(1), t.findWord("h").getValue());
 		Assert.assertEquals(new Integer(1), t.findWord("hel").getValue());
@@ -76,5 +76,19 @@ public class TrieTest {
 		Assert.assertEquals(new Integer(1), t.findWord("work").getValue());
 		Assert.assertEquals(new Integer(1), t.findWord("worke").getValue());
 		Assert.assertEquals(new Integer(0), t.findWord("worked").getValue());
+	}
+	
+	@Test
+	public void testSimpleDictReverse() {
+		IGerman98Dictionary dict = new IGerman98Dictionary(new File("src/test/resources/dic/igerman98.dic"), new File("src/test/resources/dic/igerman98.aff"));
+		Trie t = Trie.createForDictReverse(dict);
+		
+		Assert.assertEquals(new Integer(2), t.findWord("d").getValue());
+		Assert.assertEquals(new Integer(2), t.findWord("de").getValue());
+		Assert.assertEquals(new Integer(1), t.findWord("dei").getValue());
+		Assert.assertEquals(new Integer(0), t.findWord("deirt").getValue());
+		
+		Assert.assertEquals(new Integer(2), t.findWord("k").getValue());
+		Assert.assertEquals(new Integer(1), t.findWord("o").getValue());
 	}
 }

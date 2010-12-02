@@ -87,11 +87,27 @@ public class Trie {
 	 * @param dict
 	 * @return
 	 */
-	public static Trie createForIGerman98(SimpleDictionary dict) {
+	public static Trie createForDict(SimpleDictionary dict) {
 		Trie t = new Trie();
 		
 		for (String word : dict.getWords()) {
 			t.addWord(word);
+		}
+		
+		return t;
+	}
+	
+	/**
+	 * Creates a Trie object for a SimpleDictionary with all
+	 * words reversed
+	 * @param dict
+	 * @return
+	 */
+	public static Trie createForDictReverse(SimpleDictionary dict) {
+		Trie t = new Trie();
+		
+		for (String word : dict.getWords()) {
+			t.addWord(new StringBuffer(word).reverse().toString());
 		}
 		
 		return t;
