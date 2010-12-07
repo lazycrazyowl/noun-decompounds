@@ -20,15 +20,19 @@
  * THE SOFTWARE.
  */
 
-package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter;
+package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.old;
 
+import java.util.List;
+
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 
 /**
  * Interface for all splitting algorithms
  * 
  * @author Jens Haase <je.haase@googlemail.com>
  */
-public interface ISplitAlgorithm {
+@Deprecated
+public interface ISplitAlgorithmV1 {
 
 	/**
 	 * Returns all possible splits for a given word.
@@ -36,5 +40,5 @@ public interface ISplitAlgorithm {
 	 * @param word The word to split
 	 * @return
 	 */
-	public SplitTree split(String word);
+	public List<Split> split(String word);
 }

@@ -25,14 +25,14 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 	}
 	
 	@Override
-	public List<Split> split(String word) {
+	public SplitTree split(String word) {
 		word = word.toLowerCase();
 		SplitTree t = new SplitTree(word);
 		t.getRoot().getValue().getSplits().get(0).setSplitAgain(true);
 		
 		this.splitIt(t.getRoot());
 		
-		return t.getAllSplits();
+		return t;
 	}
 	
 	/**

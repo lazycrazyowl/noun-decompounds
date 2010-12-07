@@ -40,12 +40,14 @@ public class LeftToRightSplitAlgorithmTest {
 		LinkingMorphemes morphemes = new LinkingMorphemes("s");
 		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		List<Split> result = algo.split("Aktionsplan");
-		// Akt+ion(s)+plan, Aktion(s)+plan, Aktionsplan
-		Assert.assertEquals(3, result.size());
-		Assert.assertEquals("akt+ion(s)+plan", result.get(0).toString());
-		Assert.assertEquals("aktion(s)+plan", result.get(1).toString());
-		Assert.assertEquals("aktionsplan", result.get(2).toString());
+		List<Split> result = algo.split("Aktionsplan").getAllSplits();
+		Assert.assertEquals(6, result.size());
+		Assert.assertEquals("akt+ionsplan", result.get(0).toString());
+		Assert.assertEquals("aktionsplan", result.get(1).toString());
+		Assert.assertEquals("aktion(s)+plan", result.get(2).toString());
+		Assert.assertEquals("akt+ion(s)+plan", result.get(3).toString());
+		Assert.assertEquals("aktion+splan", result.get(4).toString());
+		Assert.assertEquals("akt+ion+splan", result.get(5).toString());
 	}
 	
 	@Test
@@ -54,9 +56,8 @@ public class LeftToRightSplitAlgorithmTest {
 		LinkingMorphemes morphemes = new LinkingMorphemes("s");
 		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		List<Split> result = algo.split("Donaudampfschifffahrt");
-		// Donau+dampf+schiff+fahrt, Donau+dampfschiff+fahrt, Donau+dampf+schifffahrt
-		Assert.assertEquals(3, result.size());
+		List<Split> result = algo.split("Donaudampfschifffahrt").getAllSplits();
+		Assert.assertEquals(6, result.size());
 	}
 	
 	@Test
@@ -65,20 +66,8 @@ public class LeftToRightSplitAlgorithmTest {
 		LinkingMorphemes morphemes = new LinkingMorphemes("s");
 		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		List<Split> result = algo.split("Supermannanzug");
+		List<Split> result = algo.split("Supermannanzug").getAllSplits();
 		// Super+mann+anzug, Supermann+anzug
-		Assert.assertEquals(2, result.size());
-	}
-	
-	@Test
-	public void testSplit4() {
-		IDictionary dict = new SimpleDictionary("dreh" ,"zahl", "änderung");
-		LinkingMorphemes morphemes = new LinkingMorphemes("en");
-		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
-		
-		List<Split> result = algo.split("drehzahländerungen");
-		// dreh+zahl+änderung(en)
-		Assert.assertEquals(1, result.size());
-		Assert.assertEquals("dreh+zahl+änderung(en)", result.get(0).toString());
+		Assert.assertEquals(4, result.size());
 	}
 }

@@ -23,25 +23,21 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.ISplitAlgorithm;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 
 public class SplitterEvaluationTest {
 
 	private class DummyAlgorithm implements ISplitAlgorithm {
 
 		@Override
-		public List<Split> split(String word) {
-			List<Split> s = new ArrayList<Split>();
-			// Simple return the normal word
-			s.add(Split.createFromString(word));
+		public SplitTree split(String word) {
+			SplitTree s = new SplitTree(word);
 			
 			return s;
 		}

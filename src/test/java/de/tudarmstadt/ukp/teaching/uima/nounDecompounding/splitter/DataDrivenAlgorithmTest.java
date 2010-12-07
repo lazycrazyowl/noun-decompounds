@@ -19,7 +19,7 @@ public class DataDrivenAlgorithmTest {
 		LinkingMorphemes morphemes = new LinkingMorphemes("en", "s", "ens");
 
 		DataDrivenAlgorithm algo = new DataDrivenAlgorithm(dict, morphemes);
-		List<Split> result = algo.split("friedenspolitik");
+		List<Split> result = algo.split("friedenspolitik").getAllSplits();
 
 		Assert.assertEquals(2, result.size());
 		Assert.assertEquals("friedenspolitik", result.get(0).toString());

@@ -30,7 +30,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.LinkingMorphemes;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.SplitterEvaluation;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 
 /**
  * Implements a simple left to right split algorithm.
@@ -60,24 +60,15 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 	}
 	
 	@Override
-	public List<Split> split(String word) {
+	public SplitTree split(String word) {
 		word = word.toLowerCase();
 		
-		Split s = this.ltrSplit(word);
-		List<Split> result = new ArrayList<Split>();
+		SplitTree t = new SplitTree(word);
+		t.getRoot().getValue().getSplits().get(0).setSplitAgain(true);
 		
-		if (s != null) {
-			List<Split> combination = this.combine(s);
-			for (Split split : combination) {
-				result.addAll(this.morpheme(split.getSplits()));
-			}
-		} else {
-			s = new Split();
-			s.appendSplitElement(new SplitElement(word));
-			result.add(s);
-		}
-
-		return result;
+		this.ltrSplit(t.getRoot());
+		
+		return t;
 	}
 	
 	/**
@@ -86,194 +77,66 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 	 * @param word
 	 * @return
 	 */
-	protected Split ltrSplit(String word) {
-		Split rightSplit;
-		
-		// Move from left to right
-		for (int i = 0; i < word.length(); i++) {
-			String leftWord = word.substring(0, i+1);
-			String rightWord = word.substring(i+1);
-	
-			// Check if the left word is in the dict and the right part can be splitted
-			if (this.dict.contains(leftWord) && (rightSplit = this.ltrSplit(rightWord)) != null) {
-				rightSplit.prependSplitElement(new SplitElement(leftWord));
-				return rightSplit;
-			} else {
-				// Next: Add morpheme between word.
-				for (String morpheme : this.morphemes.getAll()) {
-					try {
-						String m = word.substring(i+1, i+1+morpheme.length());
-						rightWord = word.substring(i+1+morpheme.length());
-						
-						if (this.dict.contains(leftWord) && m.equals(morpheme) && (rightSplit = this.ltrSplit(rightWord)) != null) {
-							rightSplit.prependSplitElement(new SplitElement(leftWord, morpheme));
-							return rightSplit;
-						}
-					} catch (StringIndexOutOfBoundsException e) {
-						continue;
+	protected void ltrSplit(ValueNode<Split> parent) {
+		for (int i = 0; i < parent.getValue().getSplits().size(); i++) {
+			SplitElement element = parent.getValue().getSplits().get(i);
+			
+			if (element.shouldSplitAgain()) {
+				List<Split> results = this.makeSplit(element.getWord());
+				
+				for (Split result : results) {
+					Split copy = parent.getValue().createCopy();
+					if (result.getSplits().size() > 1) {
+						result.getSplits().get(1).setSplitAgain(true);
+						copy.replaceSplitElement(i, result);
+						ValueNode<Split> child = new ValueNode<Split>(copy);
+						parent.addChild(child);
+						this.ltrSplit(child);
 					}
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Splits a word in two word.
+	 * @param word
+	 * @return
+	 */
+	protected List<Split> makeSplit(String word) {
+		List<Split> result = new ArrayList<Split>();
 		
-		if (this.dict.contains(word)) {
-			// If word is in dict add it;
-			rightSplit = new Split();
-			rightSplit.appendSplitElement(new SplitElement(word));
-			return rightSplit;
-		} else {
-			// If word not in dict, check for morpheme add the end
+		for (int i = 0; i < word.length(); i++) {
+			String leftWord = word.substring(0, i+1);
+			String rightWord = word.substring(i+1);
+			
+			if (this.dict.contains(leftWord)) {
+				result.add(Split.createFromString(leftWord + "+" + rightWord));
+			} 
+			// Next: Add morpheme between word.
 			for (String morpheme : this.morphemes.getAll()) {
 				try {
-					String w = word.substring(0, word.length() - morpheme.length());
-					if (word.endsWith(morpheme) && this.dict.contains(w)) {
-						rightSplit = new Split();
-						rightSplit.appendSplitElement(new SplitElement(w, morpheme));
-						return rightSplit;
+					String leftWithoutMorpheme = leftWord.substring(0, leftWord.length() - morpheme.length());
+					if (leftWord.endsWith(morpheme) && this.dict.contains(leftWithoutMorpheme)) {
+						result.add(Split.createFromString(leftWithoutMorpheme+"("+morpheme+")"+"+"+rightWord));
 					}
 				} catch (StringIndexOutOfBoundsException e) {
 					continue;
 				}
 			}
-			
-			// No one found return null
-			return null;
-		}
-	}
-
-	/**
-	 * Checks for every word with a morpheme if it is also with morpheme in the dict
-	 * and creates all possible combination.
-	 * 
-	 * Example: If the split is "Akt+ion(s)+plan" and the word "ions" is in the dict,
-	 * 	the return value is {Akt+ion(s)+plan, Akt+ions+plan}
-	 * @param elements
-	 * @return
-	 */
-	protected List<Split> morpheme(List<SplitElement> elements) {
-		// Split list in first and rest
-		SplitElement first = elements.get(0);
-		List<SplitElement> rest = elements.subList(1, elements.size());
-		
-		// Create word with morpheme and word without morpheme
-		SplitElement element1 = first;
-		SplitElement element2 = null;
-		if (first.hasMorpheme() && this.dict.contains(first.getWord() + first.getMorpheme())) {
-			element2 = new SplitElement(first.getWord() + first.getMorpheme());
 		}
 		
-		
-		List<Split> result = new ArrayList<Split>();
-		
-		if (rest.isEmpty()) {
-			// Leaf node. Just return the two word
-			Split s1 = new Split();
-			s1.appendSplitElement(element1);
-			result.add(s1);
-			
-			if (element2 != null) {
-				Split s2 = new Split();
-				s2.appendSplitElement(element2);
-				result.add(s2);
-			}
-			
-			
-			return result;
-		} else {
-			List<Split> children = this.morpheme(rest);
-			
-			for (Split child : children) {
-				Split s1 = child.createCopy();
-				s1.prependSplitElement(element1);
-				result.add(s1);
-				
-				if (element2 != null) {
-					Split s2 = child.createCopy();
-					s2.prependSplitElement(element2);
-					result.add(s2);
-				}
-			}
-			
-			return result;
-		}
-	}
-	
-	/**
-	 * The basic left to right splitting algorithm
-	 * has only small word. This function will combine
-	 * single word to new word and checks if they are in
-	 * the dictioary.
-	 * 
-	 * @param split
-	 * @return
-	 */
-	protected List<Split> combine(Split split) {
-		List<Split> list = new ArrayList<Split>();
-		List<SplitElement> elements = split.getSplits();
-		list.add(split);
-		
-		for (int i = 0; i < elements.size(); i++) {
-			Split possibleSplit = new Split();
-			possibleSplit.appendSplitElement(elements.get(i));
-			
-			for (int j = i+1; j < elements.size(); j++) {
-				SplitElement next = elements.get(j);
-				List<SplitElement> before = elements.subList(0, i);
-				List<SplitElement> rest = elements.subList(j+1, elements.size());
-				String word1 = this.toWord(possibleSplit) + this.toWord(next, false);
-				String word2 = word1 + next.getMorpheme();
-				
-				if (this.dict.contains(word1)) {
-					// Word without morpheme at the end
-					possibleSplit.appendSplitElement(next);
-					
-					Split toAdd = new Split();
-					toAdd.addAll(before);
-					toAdd.appendSplitElement(new SplitElement(word1, next.getMorpheme()));
-					toAdd.addAll(rest);
-					list.add(toAdd);
-				} else if (this.dict.contains(word2)) {
-					// Word with morpheme at the end
-					possibleSplit.appendSplitElement(next);
-					
-					Split toAdd = new Split();
-					toAdd.addAll(before);
-					toAdd.appendSplitElement(new SplitElement(word2));
-					toAdd.addAll(rest);
-					list.add(toAdd);
-				}
-			}
-		}
-		
-		return list;
-	}
-	
-	protected String toWord(Split split) {
-		String s = "";
-		
-		for (SplitElement e : split.getSplits()) {
-			s += this.toWord(e, true);
-		}
-		
-		return s;
-	}
-	
-	protected String toWord(SplitElement element, boolean withMorpheme) {
-		String m = (withMorpheme && element.getMorpheme() != null) ? element.getMorpheme() : "";
-		
-		return element.getWord() + m;
+		return result;
 	}
 
 	public static void main(String[] args) {
 		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
-		IDictionary web1t = new Finder(new File("/home/jens/Desktop/web1tIndex"));
 		
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
-		LeftToRightSplitAlgorithm algo1 = new LeftToRightSplitAlgorithm(dict, morphemes); // Algorithm 1 with IGerman98 Dictionary
-		LeftToRightSplitAlgorithm algo2 = new LeftToRightSplitAlgorithm(web1t, morphemes); // Algorithm 2 with Web1t Dictionary
+		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
 		SplitterEvaluation e = new SplitterEvaluation(new File("src/main/resources/evaluation/ccorpus.txt"));
-		float result = e.evaluate(algo1);
+		float result = e.evaluate(algo);
 		
 		System.out.println("Result " + result);
 	}
