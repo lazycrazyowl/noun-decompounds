@@ -10,7 +10,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.SimpleDicti
 public class Trie {
 
 	// Key: substring. Value: Successors
-	private TreeNode<String, Integer> root = new TreeNode<String, Integer>("", 0);
+	private KeyValueNode<String, Integer> root = new KeyValueNode<String, Integer>("", 0);
 	
 	/**
 	 * Adds a word to the tree.
@@ -19,11 +19,11 @@ public class Trie {
 	 * @param word
 	 */
 	public void addWord(String word) {
-		TreeNode<String, Integer> parent = this.root;
+		KeyValueNode<String, Integer> parent = this.root;
 		
 		for (int i = 0; i < word.length(); i++) {
 			String subword = word.substring(0,i+1);
-			TreeNode<String, Integer> child = parent.getChild(subword);
+			KeyValueNode<String, Integer> child = parent.getChild(subword);
 			
 			if (child != null) {
 				if (!subword.equals(word)) {
@@ -34,7 +34,7 @@ public class Trie {
 				if (subword.equals(word)) {
 					value = 0;
 				}
-				child = new TreeNode<String, Integer>(subword, value);
+				child = new KeyValueNode<String, Integer>(subword, value);
 				parent.addChild(child);
 			}
 			
@@ -47,20 +47,22 @@ public class Trie {
 	 * @param word
 	 * @return
 	 */
-	public TreeNode<String, Integer> findWord(String word) {
+	public KeyValueNode<String, Integer> findWord(String word) {
 		word = word.toLowerCase();
-		TreeNode<String, Integer> parent = this.root;
+		KeyValueNode<String, Integer> parent = this.root;
 		int depth = 1;
 		
 		while (parent.hasChildren()) {
 			String w = word.substring(0, depth);
-			TreeNode<String, Integer> child = parent.getChild(w);
+			KeyValueNode<String, Integer> child = parent.getChild(w);
 			
 			if (w.equals(word)) {
 				return child;
 			} else if (child != null) {
 				parent = child;
 				depth++;
+			} else {
+				return null;
 			}
 		}
 		
@@ -69,17 +71,17 @@ public class Trie {
 	
 	/**
 	 * Returns the number of successor for a node.
-	 * If the node could not be found the return value is -1. 
+	 * If the node could not be found the return value is 0. 
 	 * @param word
 	 * @return
 	 */
 	public Integer getSuccessors(String word) {
-		TreeNode<String, Integer> node = this.findWord(word);
+		KeyValueNode<String, Integer> node = this.findWord(word);
 		if (node != null) {
 			return node.getValue();
 		}
 		
-		return -1;
+		return 0;
 	}
 	
 	/**

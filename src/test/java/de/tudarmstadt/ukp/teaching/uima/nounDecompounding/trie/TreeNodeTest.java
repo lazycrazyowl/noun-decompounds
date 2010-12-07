@@ -8,7 +8,7 @@ public class TreeNodeTest {
 
 	@Test
 	public void testLeaf() {
-		TreeNode<String, Integer> root = new TreeNode<String, Integer>("root", 1);
+		KeyValueNode<String, Integer> root = new KeyValueNode<String, Integer>("root", 1);
 		
 		Assert.assertTrue(root.isLeaf());
 		Assert.assertFalse(root.hasChildren());
@@ -16,8 +16,8 @@ public class TreeNodeTest {
 	
 	@Test
 	public void testAdd() {
-		TreeNode<String, Integer> root = new TreeNode<String, Integer>("root", 1);
-		TreeNode<String, Integer> child = new TreeNode<String, Integer>("child", 1);
+		KeyValueNode<String, Integer> root = new KeyValueNode<String, Integer>("root", 1);
+		KeyValueNode<String, Integer> child = new KeyValueNode<String, Integer>("child", 1);
 		
 		root.addChild(child);
 		Assert.assertFalse(root.isLeaf());

@@ -93,4 +93,19 @@ public class LinkingMorphemes {
 	public List<String> getAll() {
 		return morphemes;
 	}
+	
+	/**
+	 * Checks if the given word starts with a morpheme
+	 * @param word
+	 * @return The length of the morpheme or -1 if it do not start with a morpheme
+	 */
+	public int startsWith(String word) {
+		for (String m: this.getAll()) {
+			if (word.startsWith(m)) {
+				return m.length();
+			}
+		}
+		
+		return -1;
+	}
 }

@@ -32,6 +32,7 @@ public class SplitElement {
 
 	private String word;
 	private String morpheme;
+	private boolean splitAgain = false;
 	
 	/**
 	 * Creates a empty split element
@@ -81,6 +82,16 @@ public class SplitElement {
 		return e;
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((morpheme == null) ? 0 : morpheme.hashCode());
+		result = prime * result + ((word == null) ? 0 : word.hashCode());
+		return result;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		return this.toString().equals(obj.toString());
@@ -149,5 +160,23 @@ public class SplitElement {
 		}
 		
 		return s;
+	}
+	
+	/**
+	 * Checks if this split element should be splitted
+	 * again by the algorithm. Can be used for recursive
+	 * splitting
+	 * @return
+	 */
+	public boolean shouldSplitAgain() {
+		return splitAgain;
+	}
+
+	/**
+	 * Set the splitAgain variable
+	 * @param splitAgain
+	 */
+	public void setSplitAgain(boolean splitAgain) {
+		this.splitAgain = splitAgain;
 	}
 }

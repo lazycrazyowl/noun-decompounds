@@ -58,6 +58,14 @@ public class Split {
 	}
 	
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((splits == null) ? 0 : splits.hashCode());
+		return result;
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		return this.toString().equals(obj.toString());
 	}
@@ -115,6 +123,30 @@ public class Split {
 	public void addAll(List<SplitElement> splits) {
 		this.splits.addAll(splits);
 	}
+	
+	/**
+	 * Replace one split element with a split.
+	 * That means all split elements will be inserted at the position
+	 * of the split element
+	 * @param i
+	 * @param split
+	 */
+	public void replaceSplitElement(int i, Split split) {
+		this.splits.remove(i);
+		for (int j = 0; j < split.getSplits().size(); j++) {
+			SplitElement e = split.getSplits().get(j);
+			this.splits.add(i+j, e);
+		}
+	}
+	
+	/**
+	 * Replaces a split element with another one
+	 * @param i
+	 * @param split
+	 */
+	public void replaceSplitElement(int i, SplitElement split) {
+		this.splits.set(i, split);
+	}
 
 	/**
 	 * Similar to the equals method, but combines morpheme and word
@@ -149,4 +181,6 @@ public class Split {
 	public Split createCopy() {
 		return Split.createFromString(this.toString());
 	}
+	
+	
 }

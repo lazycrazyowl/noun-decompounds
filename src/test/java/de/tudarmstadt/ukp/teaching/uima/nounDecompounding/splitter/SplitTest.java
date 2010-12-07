@@ -84,4 +84,15 @@ public class SplitTest {
 		e2.setMorpheme("e");
 		Assert.assertFalse(s1.equals(s2));
 	}
+	
+	@Test
+	public void testReplaceSplit() {
+		Split s = Split.createFromString("Donau+dampfschiff+fahrt");
+		s.replaceSplitElement(1, Split.createFromString("dampf+schiff"));
+		Assert.assertEquals("Donau+dampf+schiff+fahrt", s.toString());
+		
+		s = Split.createFromString("Donau+dampfschiff+fahrten");
+		s.replaceSplitElement(2, new SplitElement("fahrt", "en"));
+		Assert.assertEquals("Donau+dampfschiff+fahrt(en)", s.toString());
+	}
 }
