@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter;
 
 import java.io.File;
@@ -11,6 +33,10 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.SplitterEva
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.Trie;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 
+/**
+ * A data driven algorithm, that uses a TRIE to look for splits
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
 public class DataDrivenAlgorithm implements ISplitAlgorithm {
 
 
@@ -18,6 +44,11 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 	private Trie backwardTrie;
 	private LinkingMorphemes morphmes;
 
+	/**
+	 * Constructor
+	 * @param aDictionary A simple dictionary object
+	 * @param aMorphemes A list of linking morphemes
+	 */
 	public DataDrivenAlgorithm(SimpleDictionary aDictionary, LinkingMorphemes aMorphemes) {
 		this.forwardTrie = Trie.createForDict(aDictionary);
 		this.backwardTrie = Trie.createForDictReverse(aDictionary);
@@ -40,14 +71,18 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 	 * @param parent
 	 */
 	protected void splitIt(ValueNode<Split> parent) {
+		// Iterate over all split elements
 		for (int i = 0; i < parent.getValue().getSplits().size(); i++) {
 			SplitElement element = parent.getValue().getSplits().get(i);
 			
+			// Do something if split element should be splitted
 			if (element.shouldSplitAgain()) {
+				// Split
 				List<Split> results = this.makeSplit(element.getWord());
 				
 				for (Split result : results) {
 					if (result.getSplits().size() > 1) {
+						// Left site
 						Split resultCopy1 = result.createCopy();
 						resultCopy1.getSplits().get(0).setSplitAgain(true);
 						Split parentCopy1 = parent.getValue().createCopy();
@@ -56,6 +91,7 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 						parent.addChild(node1);
 						this.splitIt(node1);
 						
+						// Right site
 						Split resultCopy2 = result.createCopy();
 						resultCopy2.getSplits().get(1).setSplitAgain(true);
 						Split parentCopy2 = parent.getValue().createCopy();
@@ -70,7 +106,8 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 	}
 	
 	/**
-	 * Makes a single split on a given word
+	 * Makes a single split on a given word. Returns all
+	 * possible splittings. All splits consist of two elements
 	 * @param word
 	 * @return
 	 */
@@ -128,24 +165,25 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 			}
 		}
 		
-		String debugForward = "";
-		for (int i = 0; i < word.length(); i++) {
-			if (i > 3 && i < word.length() -1 && maxForward[i-4]) {
-				debugForward += "|";
-			}
-			debugForward += word.charAt(i);
-		}
-		System.out.println("[DEBUG] F:" +debugForward);
+//		String debugForward = "";
+//		for (int i = 0; i < word.length(); i++) {
+//			if (i > 3 && i < word.length() -1 && maxForward[i-4]) {
+//				debugForward += "|";
+//			}
+//			debugForward += word.charAt(i);
+//		}
+//		System.out.println("[DEBUG] F:" +debugForward);
+//		
+//		String debugBackward = "";
+//		for (int i = 0; i < word.length(); i++) {
+//			debugBackward += word.charAt(i);
+//			if (i < word.length()-5 && i > 0 && maxBackward[i-1]) {
+//				debugBackward += "|";
+//			}
+//		}
+//		System.out.println("[DEBUG] B:" +debugBackward);
 		
-		String debugBackward = "";
-		for (int i = 0; i < word.length(); i++) {
-			debugBackward += word.charAt(i);
-			if (i < word.length()-5 && i > 0 && maxBackward[i-1]) {
-				debugBackward += "|";
-			}
-		}
-		System.out.println("[DEBUG] B:" +debugBackward);
-		
+		// Get all split positions
 		List<Integer> splitPos = new ArrayList<Integer>();
 		for (int i = 0; i < maxForward.length-3; i++) {
 			boolean maxF = maxForward[i];
@@ -155,6 +193,7 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 			}
 		}
 		
+		// Create all splits
 		if (splitPos.size() > 0) {
 			for (Integer pos : splitPos) {
 				Split s = new Split(); 

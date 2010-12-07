@@ -25,13 +25,29 @@ package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.igerman98;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Affix data model
+ * 
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
 public class Affix {
 
+	/**
+	 * Affix type
+	 * @author Jens Haase <je.haase@googlemail.com>
+	 */
 	public enum TYPE {
 		PREFIX, SUFFIX
 	}
 	
+	/**
+	 * Key for prefixed in affix files
+	 */
 	private static final String PREFIX_KEY = "PFX";
+	
+	/**
+	 * Key for suffixes in the affix files
+	 */
 	private static final String SUFFIX_KEY = "SFX";
 	
 	private static final String PREFIX_CONDITION_REGEX_PATTERN = "%s.*";
@@ -122,6 +138,11 @@ public class Affix {
 		this.conditionPattern = Pattern.compile(regExp);
 	}
 
+	/**
+	 * Adopt this affix on a given word
+	 * @param word
+	 * @return The word with a change prefix or affix
+	 */
 	public String handleWord(String word) {
 		Matcher m = this.conditionPattern.matcher(word);
 
