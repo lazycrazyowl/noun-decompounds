@@ -23,6 +23,7 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import junit.framework.Assert;
 
@@ -45,8 +46,8 @@ public class SplitterEvaluationTest {
 	}
 	
 	@Test
-	public void testCreateSplit() {
-		SplitterEvaluation e = new SplitterEvaluation(new File("src/test/resources/ccorpus.txt"));
+	public void testCreateSplit() throws FileNotFoundException {
+		SplitterEvaluation e = new SplitterEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
 		
 		Assert.assertEquals("blei+stift+strich(e)", e.createSplit("blei{N}+stift{N,V}+strich(e){N}").toString());
 		Assert.assertEquals("ort(s)+netz+monopol", e.createSplit("ort|s{N,V}+netz{N,V}+monopol{N}").toString());
@@ -57,8 +58,8 @@ public class SplitterEvaluationTest {
 	}
 	
 	@Test
-	public void testEvaluation() {
-		SplitterEvaluation e = new SplitterEvaluation(new File("src/test/resources/ccorpus.txt"));
+	public void testEvaluation() throws FileNotFoundException {
+		SplitterEvaluation e = new SplitterEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
 		
 		Assert.assertEquals((float) 1 / (float) 10, e.evaluate(new DummyAlgorithm()));
 	}

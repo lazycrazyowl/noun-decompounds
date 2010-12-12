@@ -23,12 +23,14 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.LinkingMorphemes;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.CcorpusReader;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.SplitterEvaluation;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 
@@ -92,6 +94,10 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 						ValueNode<Split> child = new ValueNode<Split>(copy);
 						parent.addChild(child);
 						this.ltrSplit(child);
+					} else if (result.getSplits().size() == 1 && !result.equals(parent.getValue())) {
+						copy.replaceSplitElement(i, result);
+						ValueNode<Split> child = new ValueNode<Split>(copy);
+						parent.addChild(child);
 					}
 				}
 			}
@@ -129,13 +135,13 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 		return result;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
 		
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		SplitterEvaluation e = new SplitterEvaluation(new File("src/main/resources/evaluation/ccorpus.txt"));
+		SplitterEvaluation e = new SplitterEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
 		float result = e.evaluate(algo);
 		
 		System.out.println("Result " + result);

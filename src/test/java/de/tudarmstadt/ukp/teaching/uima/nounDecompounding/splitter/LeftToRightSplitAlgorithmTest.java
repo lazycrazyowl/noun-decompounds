@@ -70,4 +70,19 @@ public class LeftToRightSplitAlgorithmTest {
 		// Super+mann+anzug, Supermann+anzug
 		Assert.assertEquals(4, result.size());
 	}
+	
+	@Test
+	public void testMorphemes1() {
+		IDictionary dict = new SimpleDictionary("alarm" ,"reaktion");
+		LinkingMorphemes morphemes = new LinkingMorphemes("en");
+		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
+		
+		List<Split> result = algo.split("alarmreaktionen").getAllSplits();
+		// Super+mann+anzug, Supermann+anzug
+		Assert.assertEquals(4, result.size());
+		Assert.assertEquals("alarm+reaktionen", result.get(0).toString());
+		Assert.assertEquals("alarm+reaktion+en", result.get(1).toString());
+		Assert.assertEquals("alarmreaktionen", result.get(2).toString());
+		Assert.assertEquals("alarm+reaktion(en)", result.get(3).toString());
+	}
 }

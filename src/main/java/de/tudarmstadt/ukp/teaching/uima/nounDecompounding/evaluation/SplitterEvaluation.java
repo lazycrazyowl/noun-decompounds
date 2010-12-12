@@ -49,10 +49,10 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.old.ISplitAlg
  */
 public class SplitterEvaluation {
 
-	private File ccorpus;
+	private CcorpusReader reader;
 
-	public SplitterEvaluation(File ccorpus) {
-		this.ccorpus = ccorpus;
+	public SplitterEvaluation(CcorpusReader aReader) {
+		this.reader = aReader;
 	}
 	
 	/**
@@ -65,8 +65,6 @@ public class SplitterEvaluation {
 	 */
 	public float evaluate(ISplitAlgorithm algo, int limit) {
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(ccorpus));
-			
 			String line;
 			String[] data;
 			Split split;
@@ -74,13 +72,10 @@ public class SplitterEvaluation {
 			
 			int total = 0, correct = 0, correctWithoutMorpheme = 0;
 			
-			while ((line = reader.readLine()) != null) {
-				// Prepare data
-				data = line.split(" ");
-				split = this.createSplit(data[1]);
-				algoSplits = algo.split(data[0]).getAllSplits();
+			while ((split = reader.readSplit()) != null) {
+				algoSplits = algo.split(split.getWord()).getAllSplits();
 				
-				// Try to find
+				// Try to find with morphemes
 				boolean found = false;
 				for (Split s : algoSplits) {
 					if (split.equals(s)) {
@@ -91,6 +86,7 @@ public class SplitterEvaluation {
 					}
 				}
 				
+				// Try to find without morphemes
 				boolean foundWithoutMorpheme = false;
 				for (Split s : algoSplits) {
 					if (split.equalWithoutMorpheme(s)) {
@@ -101,7 +97,7 @@ public class SplitterEvaluation {
 				}
 				
 				// Print errors for wrong
-				if (!found) System.err.println("Not found "+ ((foundWithoutMorpheme) ? "(but without morpheme)" : "") +": " + data[0] + "\t Correct one is: " + split.toString() + "\t Yours: " + algo.split(data[0]));
+				if (!found) System.err.println("Not found "+ ((foundWithoutMorpheme) ? "(but without morpheme)" : "") +": " + split.getWord() + "\t Correct one is: " + split.toString() + "\t Yours: " + algoSplits);
 				
 				// Increment total numbers
 				total++;
@@ -142,8 +138,6 @@ public class SplitterEvaluation {
 	@Deprecated
 	public float evaluate(ISplitAlgorithmV1 algo, int limit) {
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(ccorpus));
-			
 			String line;
 			String[] data;
 			Split split;
@@ -151,11 +145,9 @@ public class SplitterEvaluation {
 			
 			int total = 0, correct = 0, correctWithoutMorpheme = 0;
 			
-			while ((line = reader.readLine()) != null) {
+			while ((split = reader.readSplit()) != null) {
 				// Prepare data
-				data = line.split(" ");
-				split = this.createSplit(data[1]);
-				algoSplits = algo.split(data[0]);
+				algoSplits = algo.split(split.getWord());
 				
 				// Try to find
 				boolean found = false;
@@ -178,7 +170,7 @@ public class SplitterEvaluation {
 				}
 				
 				// Print errors for wrong
-				if (!found) System.err.println("Not found "+ ((foundWithoutMorpheme) ? "(but without morpheme)" : "") +": " + data[0] + "\t Correct one is: " + split.toString() + "\t Yours: " + algo.split(data[0]));
+				if (!found) System.err.println("Not found "+ ((foundWithoutMorpheme) ? "(but without morpheme)" : "") +": " + split.getWord() + "\t Correct one is: " + split.toString() + "\t Yours: " + algoSplits);
 				
 				// Increment total numbers
 				total++;

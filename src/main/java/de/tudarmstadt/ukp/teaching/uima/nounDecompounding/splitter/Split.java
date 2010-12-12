@@ -174,6 +174,18 @@ public class Split {
 		return s;
 	}
 	
+	public String getWord() {
+		String word = "";
+		for (SplitElement e : this.getSplits()) {
+			word += e.getWord();
+			if (e.hasMorpheme()) {
+				word += e.getMorpheme();
+			}
+		}
+		
+		return word;
+	}
+	
 	/**
 	 * Creates a copy of this element.
 	 * @return

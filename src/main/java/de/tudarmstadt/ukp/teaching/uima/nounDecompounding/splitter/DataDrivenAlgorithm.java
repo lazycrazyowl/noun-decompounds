@@ -23,12 +23,14 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.LinkingMorphemes;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.SimpleDictionary;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.CcorpusReader;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.SplitterEvaluation;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.Trie;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
@@ -231,13 +233,13 @@ public class DataDrivenAlgorithm implements ISplitAlgorithm {
 		return result;
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		SimpleDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		
 		DataDrivenAlgorithm algo = new DataDrivenAlgorithm(dict, morphemes);
 		
-		SplitterEvaluation e = new SplitterEvaluation(new File("src/main/resources/evaluation/ccorpus.txt"));
+		SplitterEvaluation e = new SplitterEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
 		float result = e.evaluate(algo);
 		
 		System.out.println("Result " + result);
