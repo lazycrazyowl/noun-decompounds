@@ -1,0 +1,117 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[11pt, accentcolor=tud9b, nochapname]{tudexercise}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase}
+\title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Report Week 5}
+\subtitle{UIMA Software Project WS 2010/2011}
+\subsubtitle{Jens Haase}
+\date{\today}
+\maketitle
+
+\section{Work done in the last week}
+
+\subsection{Tree visualization}
+After refactoring the split algorithm in the last week, the algorithm will now return a tree instead of a list. The tree can now be visualized. For that I created 20,000 split with the current implementation. All trees are converted to a \texttt{JSON} structure and stored in a CouchDB Database. With the help of JQuery (\url{http://jquery.com/}) and Javascript InfoVis Toolkit (\url{http://thejit.org/}) I created a little web application. It can be see on \url{http://jenshaase.couchone.com/noun_decompounding/_design/tree/index.html}. The code of the web application can be found in \texttt{src/main/couchapp}. To install the application you need to install CouchDB and \texttt{node.couchapp.js} from \url{ https://github.com/mikeal/node.couchapp.js}.
+
+\subsection{Improving splitting algorithm}
+In the next step i want to improve the current splitting algorithm. In the last week we had a recall of 0.47 with morphemes. I added a few small improvements to generate more words with different morphemes. Also the list of morphemes was updated. It contains now all morphemes that appear in the evaluation corpus.
+
+These improvements result in a recall of 0.81 with morphemes and 0.89 without morphemes. I think this are good value to start with the ranking algorithm.
+
+\subsection{Ranking algorithm}
+In the next few weeks all splits in the current tree have to be ranked. The split with the highest rank will be the correct split. With the current implementation there are two options to create a ranking. The first and more easy one is to convert the tree to a list an rank each split individual. The other, more complex one, is to evaluate the splits that are added to the tree. This has the advantage that complete subtree can be skipped when the calculated value is to bad. In the following weeks I will focus on the first method. The experiences with this method can help me to build the more complex method.
+
+\subsubsection{Frequency-Based Method}
+The first attembt to build a ranking function should be a frequency based method as described by Alfonseca \cite{alf2008}. For each split $S$ with the words $s_i$ we calculate the geometric mean of the frequencies from the \texttt{Web1T} corpus:
+
+\begin{equation}
+  F_s = \prod_{s_i \in S} freq(s_i))^{\frac{1}{|S|}}
+\end{equation}
+
+The split with the highest $F_s$ will be the highest ranked split.
+
+\subsubsection{Probability-Based Method}
+The second method is also described by Alfonseca \cite{alf2008}. For each Split $S$ with the words $s_i$ we calculate
+
+\begin{equation}
+  P_s = \sum_{s_i \in S} -log(\frac{freq(s_i)}{F})
+\end{equation}
+
+where $F$ is the total amount of frequencies. The split with the lowest $P_s$ will the the highest ranked split.
+
+\subsubsection{Mutual Information}
+The previous methods only focus on the individual word and not on the co-occurrence of the words. For that we add the next method, also described by Alfonseca \cite{alf2008}. For a word pair $w_1$ and $w_2$ we can calculate the mutual information:
+
+\begin{equation}
+  M(w_1, w_2) = log_2(\frac{\frac{freq(w_1, w_2)}{F}}
+    {\frac{freq(w_1)}{F} \times \frac{freq(w_2)}{F}})
+    = log_2(\frac{F \times freq(w_1, w_2)}{freq(w_1) \times freq(w_2)})
+\end{equation}
+
+For all word pairs in a split $S$ we can calculate the mutual information and average it. The split with the highest averaged mutual information is the highest ranked split.
+
+\subsubsection{Combination}
+A combination of this tree method can help to improve the result.
+
+\subsection{Time Tracking}
+
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Needed time} & \textbf{Planned time} \\ \hline
+  2010-12-09 & Improve splitting algorithm & 2 & 4 \\ \hline
+  2010-12-14 & Ranking functions & 2 & 3 \\ \hline
+  2010-12-15 & Ranking functions and Report writing & 4 & 4  \\ \hline
+\end{tabular}
+
+\section{Plan for next week}
+In the next week I will start to implement a the first ranking method. I will also focus on the evaluation of the final results.
+
+\vspace{10pt}
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2010-12-16 & Ranking algorithm & 4 \\ \hline
+  2010-12-18 & Ranking algorithm & 3 \\ \hline
+  2010-12-20 & Ranking algorithm and Evaluation & 2 \\ \hline
+  2010-12-22 & Report Writing & 2 \\ \hline
+\end{tabular}
+
+\bibliographystyle{alpha}
+\bibliography{00_taskdescription}
+
+\end{document}

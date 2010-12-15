@@ -1,0 +1,19 @@
+body {
+	width: 100%;
+  font:13px/1.5 'Helvetica Neue',Arial,'Liberation Sans',FreeSans,sans-serif;
+}
+
+#tree {
+	height: 500px;
+	overflow: hidden;
+	background-color: #111;
+}
+
+#words {
+	height: 500px;
+	overflow: scroll;
+}
+
+#words li {
+	cursor: pointer;
+}
