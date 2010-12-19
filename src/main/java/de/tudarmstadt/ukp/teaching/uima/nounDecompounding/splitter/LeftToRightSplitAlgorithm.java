@@ -117,13 +117,15 @@ public class LeftToRightSplitAlgorithm implements ISplitAlgorithm {
 			String rightWord = word.substring(i+1);
 			
 			if (this.dict.contains(leftWord)) {
-				result.add(Split.createFromString(leftWord + "+" + rightWord));
+				if (rightWord.length() > 2 || rightWord.length() == 0)
+					result.add(Split.createFromString(leftWord + "+" + rightWord));
 			} 
 			// Next: Add morpheme between word.
 			for (String morpheme : this.morphemes.getAll()) {
 				try {
 					String leftWithoutMorpheme = leftWord.substring(0, leftWord.length() - morpheme.length());
-					if (leftWord.endsWith(morpheme) && this.dict.contains(leftWithoutMorpheme)) {
+					if (leftWord.endsWith(morpheme) && this.dict.contains(leftWithoutMorpheme) &&
+							(rightWord.length() > 2 || rightWord.length() == 0)) {
 						result.add(Split.createFromString(leftWithoutMorpheme+"("+morpheme+")"+"+"+rightWord));
 					}
 				} catch (StringIndexOutOfBoundsException e) {
