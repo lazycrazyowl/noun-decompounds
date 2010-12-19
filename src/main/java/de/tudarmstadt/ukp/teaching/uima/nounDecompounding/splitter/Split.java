@@ -31,9 +31,10 @@ import java.util.List;
  * 
  * @author Jens Haase <je.haase@google.com>
  */
-public class Split {
+public class Split implements Comparable<Split> {
 
 	private List<SplitElement> splits = new ArrayList<SplitElement>();
+	private float weight;
 
 	/**
 	 * Create a split from a string
@@ -192,6 +193,33 @@ public class Split {
 	 */
 	public Split createCopy() {
 		return Split.createFromString(this.toString());
+	}
+
+	/**
+	 * Returns the ranked weight of the split
+	 * @return
+	 */
+	public float getWeight() {
+		return weight;
+	}
+
+	/**
+	 * Sets a rank weight for the split
+	 * @param weight
+	 */
+	public void setWeight(float weight) {
+		this.weight = weight;
+	}
+
+	@Override
+	public int compareTo(Split o) {
+		if (getWeight() < o.getWeight()) {
+			return 1;
+		} else if (getWeight() == o.getWeight()) {
+			return 0;
+		} else {
+			return -1;
+		}
 	}
 	
 	

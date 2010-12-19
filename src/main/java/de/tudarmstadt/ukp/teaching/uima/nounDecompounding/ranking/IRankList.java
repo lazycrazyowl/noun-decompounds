@@ -20,33 +20,29 @@
  * THE SOFTWARE.
  */
 
-package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation;
+package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 
-public class ExportCcorpusMorphemes {
+/**
+ * Ranking interface for list of splits
+ * @author Jens Haase <je.haase@googmail.com>
+ */
+public interface IRankList {
 
-	public static void main(String[] args) throws IOException {
-		Set<String> morphemes = new HashSet<String>();
-		CcorpusReader reader = new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt"));
-		Split split;
-		
-		while((split = reader.readSplit()) != null) {
-			for (SplitElement s : split.getSplits()) {
-				if (s.getMorpheme() != null) {
-					morphemes.add(s.getMorpheme());
-				}
-			}
-		}
-		
-		for (String s : morphemes) {
-			System.out.println(s);
-		}
-	}
+	/**
+	 * Ranks the given splits and returns the split with
+	 * highest rank
+	 * @param splits The highest ranked split
+	 * @return
+	 */
+	public Split highestRank(List<Split> splits);
+	
+	/**
+	 * Ranks all splits and returns a order list
+	 * @return
+	 */
+	public List<Split> rank(List<Split> splits);
 }

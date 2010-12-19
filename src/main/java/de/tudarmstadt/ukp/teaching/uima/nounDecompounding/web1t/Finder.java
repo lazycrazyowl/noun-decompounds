@@ -93,7 +93,7 @@ public class Finder implements IDictionary {
 		
 		BooleanQuery q = new BooleanQuery();
 		for (String t : token) {
-			q.add(new TermQuery(new Term("gram", t)), Occur.MUST);
+			q.add(new TermQuery(new Term("gram", t.toLowerCase())), Occur.MUST);
 		}
 		
 		try {

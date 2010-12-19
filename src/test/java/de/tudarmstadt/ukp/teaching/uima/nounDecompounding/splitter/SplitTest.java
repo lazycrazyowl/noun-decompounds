@@ -22,6 +22,10 @@
 
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -94,5 +98,29 @@ public class SplitTest {
 		s = Split.createFromString("Donau+dampfschiff+fahrten");
 		s.replaceSplitElement(2, new SplitElement("fahrt", "en"));
 		Assert.assertEquals("Donau+dampfschiff+fahrt(en)", s.toString());
+	}
+	
+	@Test
+	public void testSort() {
+		Split s1 = Split.createFromString("Aktion(s)+plan");
+		Split s2 = Split.createFromString("Akt+ion(s)+plan");
+		Split s3 = Split.createFromString("Aktionsplan");
+		
+		List<Split> splits = new ArrayList<Split>();
+		splits.add(s1);
+		splits.add(s2);
+		splits.add(s3);
+		
+		s1.setWeight(2);
+		s2.setWeight(3);
+		s3.setWeight(1);
+		
+		Collections.sort(splits);
+		
+		System.out.println(splits);
+		
+		Assert.assertEquals(s2, splits.get(0));
+		Assert.assertEquals(s1, splits.get(1));
+		Assert.assertEquals(s3, splits.get(2));
 	}
 }

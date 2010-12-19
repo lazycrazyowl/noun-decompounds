@@ -20,33 +20,31 @@
  * THE SOFTWARE.
  */
 
-package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation;
+package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 
-public class ExportCcorpusMorphemes {
+/**
+ * Interface to rank a split tree
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
+public interface IRankTree {
 
-	public static void main(String[] args) throws IOException {
-		Set<String> morphemes = new HashSet<String>();
-		CcorpusReader reader = new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt"));
-		Split split;
-		
-		while((split = reader.readSplit()) != null) {
-			for (SplitElement s : split.getSplits()) {
-				if (s.getMorpheme() != null) {
-					morphemes.add(s.getMorpheme());
-				}
-			}
-		}
-		
-		for (String s : morphemes) {
-			System.out.println(s);
-		}
-	}
+	/**
+	 * Ranks a split tree and returns the highest ranked split
+	 * 
+	 * @param tree
+	 * @return
+	 */
+	public Split highestRank(SplitTree tree);
+	
+	/**
+	 * Ranks a split tree and returns a ordered list
+	 * @param tree
+	 * @return
+	 */
+	public List<Split> rank(SplitTree tree);
 }
