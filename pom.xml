@@ -8,6 +8,15 @@
   <groupId>de.tudarmstadt.ukp.teaching.uima</groupId>
   <artifactId>de.tudarmstadt.ukp.teaching.uima.nounDecompounding</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <repositories>
+  		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>ukp-teaching-uima</id>
+			<url>http://maggie.tk.informatik.tu-darmstadt.de/download/uima/maven/</url>
+		</repository>
+  </repositories>
   <build>
   	<plugins>
   		<plugin>
