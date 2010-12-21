@@ -57,7 +57,7 @@ public class RankingEvaluation {
 				if (result.get(0).equals(split)) {
 					correct++;
 				} else {
-					System.out.println(split + " -> " + result.get(0) + " " + result);
+					System.out.println(total + ": " + split + " -> " + result.get(0) + " " + result);
 				}
 				
 				if (result.get(0).equalWithoutMorpheme(split)) {
