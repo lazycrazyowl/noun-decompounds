@@ -79,10 +79,9 @@ public class LeftToRightSplitAlgorithmTest {
 		
 		List<Split> result = algo.split("alarmreaktionen").getAllSplits();
 		// Super+mann+anzug, Supermann+anzug
-		Assert.assertEquals(4, result.size());
+		Assert.assertEquals(3, result.size());
 		Assert.assertEquals("alarm+reaktionen", result.get(0).toString());
-		Assert.assertEquals("alarm+reaktion+en", result.get(1).toString());
-		Assert.assertEquals("alarmreaktionen", result.get(2).toString());
-		Assert.assertEquals("alarm+reaktion(en)", result.get(3).toString());
+		Assert.assertEquals("alarmreaktionen", result.get(1).toString());
+		Assert.assertEquals("alarm+reaktion(en)", result.get(2).toString());
 	}
 }
