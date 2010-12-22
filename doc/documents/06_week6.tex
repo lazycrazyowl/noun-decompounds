@@ -1,0 +1,85 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[11pt, accentcolor=tud9b, nochapname]{tudexercise}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase}
+\title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Report Week 6}
+\subtitle{UIMA Software Project WS 2010/2011}
+\subsubtitle{Jens Haase}
+\date{\today}
+\maketitle
+
+\section{Work done in the last week}
+
+\subsection{Splitting algorithm}
+The last week started with some small improvements for the splitting algorithm. All split elements with less than three letters are not added to the tree. This had no effect on the recall, but in reduces the number of possible splits.
+
+\subsection{Frequency-Based Method}
+The first implementation of a ranking algorithm is the frequency based method. To evaluate the method I added an evaluation class. Running the evaluation currently takes very long. For the evaluation only the first thousands words are used. This takes 30 minutes to complete. At the end we have a recall of 0.415 without morphemes and 0.667 with morphemes. That is not that great but I do not expect such a high value for this easy method.
+
+The bottleneck of the algorithm currently is the search in the lucence index. A single search often takes over one second.
+
+\subsection{Probability-Based Method}
+Next, the probability based method was implemented. For evaluation also only the first 1000 words are used. It has nearly the same run time as the frequency based method above, because of the same bottleneck.
+
+The evaluation has a very bad recall of 0.074 with morphemes and 0.119 without morphemes. This is because the methods favors the splits with the smallest number of parts. Mostly the highest rank word is the word that is not splitted. Maybe this method works better on small corpus sizes.
+
+
+\subsection{Time Tracking}
+
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Needed time} & \textbf{Planned time} \\ \hline
+  2010-12-16 & Improve splitting algorithm & 1 & 0 \\ \hline
+  2010-12-18 & Frequency based ranking & 2 & 4 \\ \hline
+  2010-12-28 & Probability based ranking & 2 & 4  \\ \hline
+  2010-12-22 & Evaluation and Report Writing & 3 & 3 \\ \hline
+\end{tabular}
+
+\section{Plan for next week}
+Before implementing another ranking algorithm the bottleneck should be resolved. For real application it can not take a few seconds to split a word. My attempt to improve the speed is to create separated index for each n-gram type. One for the unigram, one for the bigrams and so one. The algorithm than can ask each index in parallel. Also the search should be faster on smaller indexes. Another solution could be to use a cache for the search results. This can help for the lookups of a single split, but not necessary for different splits, because the words are mostly very different.
+
+\vspace{10pt}
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2010-12-27 & Resolve bottleneck & 3 \\ \hline
+  2010-12-28 & Resolve bottleneck & 3 \\ \hline
+  2011-01-02 & Resolve bottleneck and Report Writing & 4 \\ \hline
+\end{tabular}
+
+\end{document}

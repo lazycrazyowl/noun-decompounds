@@ -23,7 +23,6 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
