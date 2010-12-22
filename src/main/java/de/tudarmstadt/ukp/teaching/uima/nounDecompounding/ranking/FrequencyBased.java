@@ -37,10 +37,18 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
+/**
+ * Frequency based method
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
 public class FrequencyBased implements IRankList {
 
 	private Finder finder;
 
+	/**
+	 * Constructor
+	 * @param aFinder
+	 */
 	public FrequencyBased(Finder aFinder) {
 		this.finder = aFinder;
 	}
@@ -61,6 +69,11 @@ public class FrequencyBased implements IRankList {
 		return splits;
 	}
 
+	/**
+	 * Calculates the weight for a split
+	 * @param split
+	 * @return
+	 */
 	private float calcRank(Split split) {
 		float result = 1.0f;
 		
@@ -71,6 +84,11 @@ public class FrequencyBased implements IRankList {
 		return (float) Math.pow(result, 1f / (float) split.getSplits().size());
 	}
 
+	/**
+	 * Returns the frequency for a split element
+	 * @param elem
+	 * @return
+	 */
 	private float getFreq(SplitElement elem) {
 		float total = 0f;
 		

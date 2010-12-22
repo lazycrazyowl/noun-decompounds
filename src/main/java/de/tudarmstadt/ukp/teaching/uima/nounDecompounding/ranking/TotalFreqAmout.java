@@ -29,6 +29,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 
+/**
+ * Caluclates the total amount of frequency.
+ * This value is needed for the proabibliy based method
+ * @author jens
+ *
+ */
 public class TotalFreqAmout {
 
 	private File folder;
@@ -37,6 +43,11 @@ public class TotalFreqAmout {
 		this.folder = aWeb1tFolder;
 	}
 	
+	/**
+	 * Adds all frequency values
+	 * @return
+	 * @throws IOException
+	 */
 	public BigInteger countFreq() throws IOException {
 		BigInteger count = BigInteger.valueOf(0);
 		
@@ -66,10 +77,6 @@ public class TotalFreqAmout {
 		return count;
 	}
 	
-	/**
-	 * @param args
-	 * @throws IOException 
-	 */
 	public static void main(String[] args) throws IOException {
 		TotalFreqAmout amount = new TotalFreqAmout(new File("/home/jens/Desktop/web1t/GERMAN_EXTRACT"));
 		System.out.println("Total amount: " + amount.countFreq());

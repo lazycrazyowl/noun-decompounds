@@ -38,12 +38,21 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
+/**
+ * Probability based ranking method
+ * @author Jens Haase <je.haase@googlemail.com>
+ *
+ */
 public class ProbabilityBased implements IRankList {
 
-	public static BigInteger FREQUENCY = new BigInteger("391558376699"); 
+	public static double FREQUENCY = 391558376699d; 
 	
 	private Finder finder;
 
+	/**
+	 * Constructor
+	 * @param aFinder
+	 */
 	public ProbabilityBased(Finder aFinder) {
 		this.finder = aFinder;
 	}
@@ -64,21 +73,31 @@ public class ProbabilityBased implements IRankList {
 		return splits;
 	}
 	
+	/**
+	 * Calculates the weight for a split
+	 * @param split
+	 * @return
+	 */
 	private float calcRank(Split split) {
 		float result = 0;
 		
 		for (SplitElement elem : split.getSplits()) {
-			result += -1 * Math.log(this.getFreq(elem).divide(FREQUENCY).doubleValue());
+			result += -1 * Math.log((double) this.getFreq(elem) / FREQUENCY);
 		}
 		
 		return result;
 	}
 
-	private BigInteger getFreq(SplitElement elem) {
-		BigInteger total = BigInteger.valueOf(0);
+	/**
+	 * Returns the frequence for a split element
+	 * @param elem
+	 * @return
+	 */
+	private int getFreq(SplitElement elem) {
+		int total = 0;
 		
 		for (NGram gram : finder.find(elem.getWord())) {
-			total = total.add(BigInteger.valueOf(gram.getFreq()));
+			total += gram.getFreq();
 		}
 		
 		return total;

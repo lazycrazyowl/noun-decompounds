@@ -22,6 +22,60 @@
 
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import junit.framework.Assert;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
+
 public class ProbabilityBasedTest {
 
+	static File source = new File("src/test/resources/ranking/n-grams");
+	static File index = new File("src/test/resources/ranking/index");
+	
+	@BeforeClass
+	public static void createIndex() throws Exception {
+		index.mkdirs();
+		
+		LuceneIndexer indexer = new LuceneIndexer(source, index);
+		indexer.index();
+	}
+	
+	@Test
+	public void testRank() {
+		ProbabilityBased ranker = new ProbabilityBased(new Finder(index));
+		
+		List<Split> list = new ArrayList<Split>();
+		Split s1 = Split.createFromString("Aktionsplan");
+		list.add(s1);
+		Split s2 = Split.createFromString("Akt+ion(s)+plan");
+		list.add(s2);
+		Split s3 = Split.createFromString("Aktion(s)+plan");
+		list.add(s3);
+		
+		
+		List<Split> result = ranker.rank(list);
+		Assert.assertEquals(s1, result.get(0));
+		Assert.assertEquals(s2, result.get(2));
+		Assert.assertEquals(s3, result.get(1));
+		
+		
+		Assert.assertEquals(s1, ranker.highestRank(list));
+	}
+	
+	@AfterClass
+	public static void removeIndex() {
+		for (File f: index.listFiles()) {
+			f.delete();
+		}
+		index.delete();
+	}
 }

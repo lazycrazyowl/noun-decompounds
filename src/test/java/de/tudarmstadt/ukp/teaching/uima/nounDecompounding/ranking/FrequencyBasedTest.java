@@ -28,6 +28,7 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -67,5 +68,13 @@ public class FrequencyBasedTest {
 		
 		
 		Assert.assertEquals(s3, ranker.highestRank(list));
+	}
+	
+	@AfterClass
+	public static void removeIndex() {
+		for (File f: index.listFiles()) {
+			f.delete();
+		}
+		index.delete();
 	}
 }
