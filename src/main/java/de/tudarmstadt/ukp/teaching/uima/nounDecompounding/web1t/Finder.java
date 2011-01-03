@@ -50,8 +50,8 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary
  */
 public class Finder implements IDictionary {
 
-	IndexReader ir;
-	IndexSearcher searcher;
+	List<IndexReader> ir = new ArrayList<IndexReader>();
+	List<IndexSearcher> searcher = new ArrayList<IndexSearcher>();
 	QueryParser parser;
 	
 	/**
@@ -60,12 +60,22 @@ public class Finder implements IDictionary {
 	 * In case of performance it is recommended
 	 * to use only one instance of this class.
 	 * 
-	 * @param indexFolder The folder to the lucene index
+	 * @param indexFolder The folder to the lucene index or a folder with multiple indexes.
 	 */
 	public Finder(File indexFolder) {
 		try {
-			this.ir = IndexReader.open(FSDirectory.open(indexFolder));
-			this.searcher = new IndexSearcher(FSDirectory.open(indexFolder));
+			if (this.checkForIndex(indexFolder)) {
+				ir.add(IndexReader.open(FSDirectory.open(indexFolder)));
+				searcher.add(new IndexSearcher(FSDirectory.open(indexFolder)));
+			} else {
+				for (File f : indexFolder.listFiles()) {
+					if (f.isDirectory() && this.checkForIndex(f)) {
+						ir.add(IndexReader.open(FSDirectory.open(f)));
+						searcher.add(new IndexSearcher(FSDirectory.open(f)));
+					}
+				}
+			}
+			
 			this.parser = new QueryParser(Version.LUCENE_30, "gram", new StandardAnalyzer(Version.LUCENE_30));
 		} catch (CorruptIndexException e) {
 			e.printStackTrace();
@@ -74,6 +84,20 @@ public class Finder implements IDictionary {
 		}
 	}
 	
+	private boolean checkForIndex(File indexFolder) {
+		File[] files = indexFolder.listFiles();
+		boolean result = false;
+		
+		for (File file : files) {
+			if (file.isFile() && file.getName().startsWith("segments")) {
+				result = true;
+				break;
+			}
+		}
+		
+		return result;
+	}
+
 	/**
 	 * Find all n-grams in the index.
 	 * @param gram A String of token splitted by space
@@ -97,12 +121,17 @@ public class Finder implements IDictionary {
 		}
 		
 		try {
-			ScoreDoc[] results = searcher.search(q, 100).scoreDocs;
-			Document doc;
-			
-			for (ScoreDoc scoreDoc : results) {
-				 doc = ir.document(scoreDoc.doc);
-				 ngrams.add(new NGram(doc.get("gram"), Integer.valueOf(doc.get("freq"))));
+			for (int i = 0; i < ir.size(); i++) {
+				IndexReader r = ir.get(i);
+				IndexSearcher s = searcher.get(i);
+				
+				ScoreDoc[] results = s.search(q, 100).scoreDocs;
+				Document doc;
+				
+				for (ScoreDoc scoreDoc : results) {
+					 doc = r.document(scoreDoc.doc);
+					 ngrams.add(new NGram(doc.get("gram"), Integer.valueOf(doc.get("freq"))));
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

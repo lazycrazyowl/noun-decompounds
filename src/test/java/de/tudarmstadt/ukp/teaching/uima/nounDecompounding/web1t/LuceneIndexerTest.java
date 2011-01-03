@@ -42,6 +42,7 @@ public class LuceneIndexerTest {
 
 	File source = new File("src/test/resources/n-grams");
 	File index = new File("target/test/LuceneIndexer");
+	File targetIndex = new File("target/test/LuceneIndexer/0");
 	
 	@Before
 	public void setUp() throws Exception {
@@ -49,25 +50,25 @@ public class LuceneIndexerTest {
 		index.mkdirs();
 		
 		// Create index
-		LuceneIndexer indexer = new LuceneIndexer(source, index);
+		LuceneIndexer indexer = new LuceneIndexer(source, index, 2);
 		indexer.index();
 	}
 	
 	@Test
 	public void testSearch() throws Exception {
 		// Check if fields and all documents exists
-		IndexReader ir = IndexReader.open(FSDirectory.open(index));
-		Assert.assertEquals("Number of documents", 3, ir.numDocs());
+		IndexReader ir = IndexReader.open(FSDirectory.open(targetIndex));
+		Assert.assertEquals("Number of documents", 2, ir.numDocs());
 		Document doc = ir.document(0);
 		Assert.assertNotNull("Field: gram", doc.getField("gram"));
 		Assert.assertNotNull("Field: freq", doc.getField("freq"));
 		ir.close();
 
 		// Search on the index
-		IndexSearcher searcher = new IndexSearcher(FSDirectory.open(index));
+		IndexSearcher searcher = new IndexSearcher(FSDirectory.open(targetIndex));
 		QueryParser p = new QueryParser(Version.LUCENE_30, "token", new StandardAnalyzer(Version.LUCENE_30));
 		Query q = p.parse("gram:relax");
-		Assert.assertEquals("Hit count 'Relax'", 3, searcher.search(q, 100).totalHits);
+		Assert.assertEquals("Hit count 'Relax'", 2, searcher.search(q, 100).totalHits);
 		
 		q = p.parse("gram:couch");
 		Assert.assertEquals("Hit count 'couch'", 1, searcher.search(q, 100).totalHits);
@@ -82,13 +83,10 @@ public class LuceneIndexerTest {
 	
 	@Test
 	public void testData() throws Exception {
-		IndexReader ir = IndexReader.open(FSDirectory.open(index));
-		IndexSearcher searcher = new IndexSearcher(FSDirectory.open(index));
+		IndexReader ir = IndexReader.open(FSDirectory.open(targetIndex));
+		IndexSearcher searcher = new IndexSearcher(FSDirectory.open(targetIndex));
 		QueryParser p = new QueryParser(Version.LUCENE_30, "gram", new StandardAnalyzer(Version.LUCENE_30));
 		
-		LuceneIndexer indexer = new LuceneIndexer(source, index);
-		indexer.index();
-
 		// Test if all data is set correct
 		Query q = p.parse("gram:couch");
 		Document doc = ir.document(searcher.search(q, 100).scoreDocs[0].doc);
@@ -104,6 +102,9 @@ public class LuceneIndexerTest {
 	public void tearDown() throws Exception {
 		// Delete index again
 		for (File f : index.listFiles()) {
+			for (File _f: f.listFiles()) {
+				_f.delete();
+			}
 			f.delete();
 		}
 		

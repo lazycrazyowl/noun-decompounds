@@ -42,7 +42,7 @@ public class FinderTest {
 		index.mkdirs();
 		
 		// Create index
-		LuceneIndexer indexer = new LuceneIndexer(source, index);
+		LuceneIndexer indexer = new LuceneIndexer(source, index, 2);
 		indexer.index();
 	}
 	
@@ -68,8 +68,11 @@ public class FinderTest {
 	
 	@After
 	public void tearDown() throws Exception {
-		// Delete index at the end
+		// Delete index again
 		for (File f : index.listFiles()) {
+			for (File _f: f.listFiles()) {
+				_f.delete();
+			}
 			f.delete();
 		}
 		

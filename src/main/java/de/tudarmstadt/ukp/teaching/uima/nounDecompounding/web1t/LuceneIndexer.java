@@ -27,6 +27,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -67,6 +70,61 @@ public class LuceneIndexer {
 
 	private File web1tFolder;
 	private File outputPath;
+	private int indexes;
+	
+	protected class Worker extends Thread {
+
+		private List<File> files;
+		private File output;
+		
+		public Worker(List<File> fileList, File outputFolder) {
+			this.files = fileList;
+			this.output = outputFolder;
+			
+			this.output.mkdirs();
+		}
+		
+		@Override
+		public void run() {
+			try {
+				IndexWriter writer = new IndexWriter(FSDirectory.open(this.output), new StandardAnalyzer(Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
+				
+				int i = 0;
+				for (File file: files) {
+					BufferedReader reader = new BufferedReader(new FileReader(file));
+					String line;
+					String[] split;
+					Document doc;
+					while ((line = reader.readLine()) != null) {
+						doc = new Document();
+						split = line.split("\t");
+						
+						doc.add(new Field("gram", split[0], Field.Store.YES, Field.Index.ANALYZED));
+						doc.add(new Field("freq", split[1], Field.Store.YES, Field.Index.NOT_ANALYZED));
+						
+						writer.addDocument(doc);
+					}
+					i++;
+					System.out.println(file.getName() + " is Ready. Only " + (files.size()-i) + " files left ...");
+				}
+				
+				System.out.println("The index is optimized for you! This can take a moment...");
+				writer.optimize();
+				writer.close();
+			} catch (CorruptIndexException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (LockObtainFailedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+	}
 
 	/**
 	 * Constructor to create a indexer instance
@@ -74,54 +132,60 @@ public class LuceneIndexer {
 	 * @param outputPath The lucene index folder
 	 */
 	public LuceneIndexer(File web1tFolder, File outputPath) {
+		this(web1tFolder, outputPath, 1);
+	}
+	
+	/**
+	 * Constructor to create a indexer instance
+	 * @param web1tFolder The folder with all extracted n-gram files
+	 * @param outputPath The lucene index folder
+	 * @param indexes The number of indexes
+	 */
+	public LuceneIndexer(File web1tFolder, File outputPath, int indexes) {
 		this.web1tFolder = web1tFolder;
 		this.outputPath = outputPath;
+		this.indexes = indexes;
 	}
 	
 	/**
 	 * Create the index. This is a very long running function.
 	 * It will output some information on stdout.
 	 * 
-	 * @throws CorruptIndexException
-	 * @throws LockObtainFailedException
-	 * @throws IOException
+	 * @throws FileNotFoundException
+	 * @throws InterruptedException 
 	 */
-	public void index() throws CorruptIndexException, LockObtainFailedException, IOException {
-		IndexWriter writer = new IndexWriter(FSDirectory.open(this.outputPath), new StandardAnalyzer(Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
-		
-		File[] files;
+	public void index() throws FileNotFoundException, InterruptedException {
+		List<File> files;
 		
 		if (this.web1tFolder.isFile()) {
-			files = new File[]{ this.web1tFolder };
+			files = Arrays.asList(new File[]{ this.web1tFolder });
 		} else if (this.web1tFolder.isDirectory()) {
-			files = this.web1tFolder.listFiles();
+			files = Arrays.asList(this.web1tFolder.listFiles());
 		} else {
 			throw new FileNotFoundException();
 		}
+		
+		if (this.indexes > files.size()) {
+			this.indexes = files.size();
+		}
 
-		int i = 0;
 		System.out.println("Oh, you started a long running task. Take a cup of coffee ...");
-		for (File file: files) {
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line;
-			String[] split;
-			Document doc;
-			while ((line = reader.readLine()) != null) {
-				doc = new Document();
-				split = line.split("\t");
-				
-				doc.add(new Field("gram", split[0], Field.Store.YES, Field.Index.ANALYZED));
-				doc.add(new Field("freq", split[1], Field.Store.YES, Field.Index.NOT_ANALYZED));
-				
-				writer.addDocument(doc);
-			}
-			i++;
-			System.out.println(file.getName() + " is Ready. Only " + (files.length-i) + " files left ...");
+		
+		int perIndex =  (int) Math.ceil((float) files.size() / (float) this.indexes);
+		Worker[] workers = new Worker[this.indexes];
+		for (int i = 0; i < this.indexes; i++) {
+			int start = i*perIndex;
+			int end = start+perIndex;
+			if (end > files.size()) end = files.size();
+			
+			Worker w = new Worker(files.subList(start, end), new File(this.outputPath.getAbsoluteFile() + "/" + i));
+			w.start();
+			workers[i] = w;
 		}
 		
-		System.out.println("The index is optimized for you! This can take a moment...");
-		writer.optimize();
-		writer.close();
+		for (int i = 0; i < this.indexes; i++) {
+			workers[i].join();
+		}
 		
 		System.out.println("Great, index is ready. Have fun!");
 	}
@@ -138,14 +202,20 @@ public class LuceneIndexer {
 		Options options = new Options();
 		options.addOption("web1t", true, "Folder with the web1t extracted documents");
 		options.addOption("outputPath", true, "File, where the index should be created");
+		options.addOption("index", true, "(optional) Number of how many indexes should be created. Default: 1");
 		
 		CommandLineParser parser = new PosixParser();
 		try {
 			CommandLine cmd = parser.parse(options, args);
 			
+			int i = Integer.valueOf(cmd.getOptionValue("index"));
+			if (i <= 0) {
+				i = 1;
+			}
+			
 			LuceneIndexer indexer = new LuceneIndexer(
 					new File(cmd.getOptionValue("web1t")),
-					new File(cmd.getOptionValue("outputPath")));
+					new File(cmd.getOptionValue("outputPath")), i);
 			
 			indexer.index();
 		} catch (Exception e) {
