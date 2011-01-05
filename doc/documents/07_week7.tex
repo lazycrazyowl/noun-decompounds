@@ -1,0 +1,83 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[11pt, accentcolor=tud9b, nochapname]{tudexercise}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase}
+\title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Report Week 7}
+\subtitle{UIMA Software Project WS 2010/2011}
+\subsubtitle{Jens Haase}
+\date{\today}
+\maketitle
+
+\section{Work done in the last week}
+
+\subsection{Internal search cache}
+The first attempt to improve search speed is a simple least recently used (LRU) cache. This cache maps the last thousand search queries to the search results of the index. Queries that has been send before must not be searched again in the index. The cache improves the speed for the first 1000 splits from 30 minutes to 20 minutes.
+
+\subsection{Multiple indexes}
+The next step was to split the single index in multiple indexes, with the hope that the search on all these indexes in parallel will be faster than the search on one single index. But this was not true. I created two new indexes. One with nine single indexes and one with 26 indexes. Both were slower than the single index. As see above the splitting of the first 1000 words takes 20 minutes. The same task with a nine-splitted index takes 30 minutes and with the 26-splitted index runs over 50 minutes.
+
+\subsection{Improvements}
+All software improvements had nearly no effect on the search speed. Reading more about lucene optimizing leads to the fact that only other hardware like flash-based solid state disk can help to increase the speed.
+
+A last attempted can be to create a smaller index. Since the splitting algorithm contains only word that are part of the dictionary, only n-grams that contain one of these words are interesting.
+
+
+\subsection{Time Tracking}
+
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Needed time} & \textbf{Planned time} \\ \hline
+  2011-01-03 & Implementing caching and testing results & 2 & 0 \\ \hline
+  2011-01-04 & Build new indexes and testing result & 7 & 6 \\ \hline
+  2011-01-05 & Test results and Report Writing & 4 & 4  \\ \hline
+\end{tabular}
+
+\section{Plan for next week}
+In the next week I want to create a smaller index as mentioned above. Also the next ranking algorithm should be implemented.
+
+\vspace{10pt}
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2011-01-06 & Smaller index & 4 \\ \hline
+  2011-01-07 & Ranking algorithm & 3 \\ \hline
+  2011-01-18 & Ranking algorithm & 3 \\ \hline
+  2011-01-19 & Evaluation and Report Writing & 3 \\ \hline
+\end{tabular}
+
+\end{document}

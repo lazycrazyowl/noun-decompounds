@@ -36,7 +36,7 @@ public class FinderPerformanceTest {
 	 */
 	@Test
 	public void testPerformance1() {
-		Finder f = new Finder(new File("/home/jens/Desktop/web1tIndex"));
+		Finder f = new Finder(new File("/home/jens/Desktop/web1tIndex3"));
 		String[] words = new String[] {"hallo welt", "wie geht es euch", "alpha", "zutun", "lasst uns nach hause gehen", "rennen"};
 		long time = 0;
 		
@@ -53,7 +53,7 @@ public class FinderPerformanceTest {
 	
 	@Test
 	public void testPerformance2() {
-		Finder f = new Finder(new File("/home/jens/Desktop/web1tIndex"));
+		Finder f = new Finder(new File("/home/jens/Desktop/web1tIndex3"));
 		
 		String[] words = {"filmtauscher", "minimalanforderungen", "berufungsinstanz"};
 		

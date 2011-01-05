@@ -64,6 +64,9 @@ public class FinderTest {
 		
 		result = f.find("relax");
 		Assert.assertEquals(3, result.size());
+		
+		result = f.find("relax");
+		Assert.assertEquals(3, result.size());
 	}
 	
 	@After
