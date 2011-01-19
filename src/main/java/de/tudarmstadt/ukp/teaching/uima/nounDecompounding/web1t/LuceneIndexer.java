@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,6 +43,9 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.util.Version;
+
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 
 /**
  * Index the Google Web1T corpus in lucene.
@@ -71,15 +73,18 @@ public class LuceneIndexer {
 	private File web1tFolder;
 	private File outputPath;
 	private int indexes;
+	private IDictionary dictionary;
 	
 	protected class Worker extends Thread {
 
 		private List<File> files;
 		private File output;
+		private IDictionary dict;
 		
-		public Worker(List<File> fileList, File outputFolder) {
+		public Worker(List<File> fileList, File outputFolder, IDictionary aDictionary) {
 			this.files = fileList;
 			this.output = outputFolder;
+			this.dict = aDictionary;
 			
 			this.output.mkdirs();
 		}
@@ -96,13 +101,26 @@ public class LuceneIndexer {
 					String[] split;
 					Document doc;
 					while ((line = reader.readLine()) != null) {
-						doc = new Document();
 						split = line.split("\t");
+						boolean add = true;
 						
-						doc.add(new Field("gram", split[0], Field.Store.YES, Field.Index.ANALYZED));
-						doc.add(new Field("freq", split[1], Field.Store.YES, Field.Index.NOT_ANALYZED));
+						if (this.dict != null) {
+							add = false;
+							for (String word : split[0].split(" ")) {
+								if (this.dict.contains(word)) {
+									add = true;
+									break;
+								}
+							}
+						}
+
+						if (add) {
+							doc = new Document();
+							doc.add(new Field("gram", split[0], Field.Store.YES, Field.Index.ANALYZED));
+							doc.add(new Field("freq", split[1], Field.Store.YES, Field.Index.NOT_ANALYZED));
 						
-						writer.addDocument(doc);
+							writer.addDocument(doc);
+						}
 					}
 					i++;
 					System.out.println(file.getName() + " is Ready. Only " + (files.size()-i) + " files left ...");
@@ -178,7 +196,7 @@ public class LuceneIndexer {
 			int end = start+perIndex;
 			if (end > files.size()) end = files.size();
 			
-			Worker w = new Worker(files.subList(start, end), new File(this.outputPath.getAbsoluteFile() + "/" + i));
+			Worker w = new Worker(files.subList(start, end), new File(this.outputPath.getAbsoluteFile() + "/" + i), this.dictionary);
 			w.start();
 			workers[i] = w;
 		}
@@ -189,12 +207,21 @@ public class LuceneIndexer {
 		
 		System.out.println("Great, index is ready. Have fun!");
 	}
+	
+	public IDictionary getDictionary() {
+		return dictionary;
+	}
+
+	public void setDictionary(IDictionary dictionary) {
+		this.dictionary = dictionary;
+	}
 
 	/**
 	 * Execute the indexer. Following parameter are allowed:
 	 * 
 	 *   * --web1t The folder with all extracted n-gram files
 	 *   * --outputPath The lucene index folder
+	 *   * --index (optional) Number of how many indexes should be created. Default: 1
 	 * 
 	 * @param args
 	 */
@@ -203,6 +230,7 @@ public class LuceneIndexer {
 		options.addOption("web1t", true, "Folder with the web1t extracted documents");
 		options.addOption("outputPath", true, "File, where the index should be created");
 		options.addOption("index", true, "(optional) Number of how many indexes should be created. Default: 1");
+		options.addOption("igerman98", false, "If this argument is set, only words of the german dictionary will be added to the index");
 		
 		CommandLineParser parser = new PosixParser();
 		try {
@@ -216,6 +244,10 @@ public class LuceneIndexer {
 			LuceneIndexer indexer = new LuceneIndexer(
 					new File(cmd.getOptionValue("web1t")),
 					new File(cmd.getOptionValue("outputPath")), i);
+			
+			if (cmd.hasOption("igerman98")) {
+				indexer.setDictionary(new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff")));
+			}
 			
 			indexer.index();
 		} catch (Exception e) {

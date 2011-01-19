@@ -116,6 +116,10 @@ public class SplitElement {
 		return word;
 	}
 	
+	public String getWordWithMorpheme() {
+		return this.word + ((this.morpheme != null) ? this.morpheme : "");
+	}
+	
 	/**
 	 * Sets the word of the split element
 	 * @param word

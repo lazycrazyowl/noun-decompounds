@@ -36,7 +36,20 @@ public class RankingEvaluation {
 	public class Result {
 		public float recall;
 		public float recallWithoutMorpheme;
-		public float precision;
+		public float recallAt2;
+		public float recallAt2WithoutMorpheme;
+		public float recallAt3;
+		public float recallAt3WithoutMorpheme;
+		
+		public String toString() {
+			StringBuffer buf = new StringBuffer();
+			buf.append("Result:\n");
+			buf.append("\tCorrect: "+recall+" (without Morpheme: " +recallWithoutMorpheme+")\n");
+			buf.append("\tCorrect@2: "+recallAt2+" (without Morpheme: " +recallAt2WithoutMorpheme+")\n");
+			buf.append("\tCorrect@3: "+recallAt3+" (without Morpheme: " +recallAt3WithoutMorpheme+")");
+			
+			return buf.toString();
+		}
 	}
 
 	public RankingEvaluation(CcorpusReader aReader) {
@@ -44,7 +57,9 @@ public class RankingEvaluation {
 	}
 	
 	public Result evaluate(ISplitAlgorithm splitter, IRankList ranker, int limit) {
-		int total = 0, correct = 0, correctWithoutMorpheme = 0;
+		int total = 0, correct = 0, correctWithoutMorpheme = 0,
+			correctAt2 = 0, correctAt2WithoutMorpheme = 0,
+			correctAt3 = 0, correctAt3WithoutMorpheme = 0;
 		
 		try {
 			Split split;
@@ -57,11 +72,25 @@ public class RankingEvaluation {
 				if (result.get(0).equals(split)) {
 					correct++;
 				} else {
-					System.out.println(total + ": " + split + " -> " + result.get(0) + " " + result);
+					System.out.println(total + ": " + split + " -> " + result.get(0) + " " + this.getResultList(result));
 				}
 				
 				if (result.get(0).equalWithoutMorpheme(split)) {
 					correctWithoutMorpheme++;
+				}
+				
+				if (result.size() >= 2 && (result.get(0).equals(split) || result.get(1).equals(split))) {
+					correctAt2++;
+				}
+				if (result.size() >= 2 && (result.get(0).equalWithoutMorpheme(split) || result.get(1).equalWithoutMorpheme(split))) {
+					correctAt2WithoutMorpheme++;
+				}
+				
+				if (result.size() >= 3 && (result.get(0).equals(split) || result.get(1).equals(split) || result.get(2).equals(split))) {
+					correctAt3++;
+				}
+				if (result.size() >= 3 && (result.get(0).equalWithoutMorpheme(split) || result.get(1).equalWithoutMorpheme(split) || result.get(2).equalWithoutMorpheme(split))) {
+					correctAt3WithoutMorpheme++;
 				}
 				
 				total++;
@@ -74,8 +103,29 @@ public class RankingEvaluation {
 		Result r = new Result();
 		r.recall = (float) correct / (float) total;
 		r.recallWithoutMorpheme = (float) correctWithoutMorpheme / (float) total;
-		r.precision = 0;
+		r.recallAt2 = (float) correctAt2 / (float) total;
+		r.recallAt2WithoutMorpheme = (float) correctAt2WithoutMorpheme / (float) total;
+		r.recallAt3 = (float) correctAt3 / (float) total;
+		r.recallAt3WithoutMorpheme = (float) correctAt3WithoutMorpheme / (float) total;
 		return r;
+	}
+	
+	private String getResultList(List<Split> splits) {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("[");
+		
+		for (int i = 0; i < splits.size(); i++) {
+			buffer.append(splits.get(i).toString());
+			buffer.append(":");
+			buffer.append(splits.get(i).getWeight());
+			if (i < splits.size()-1) {
+				buffer.append(", ");
+			}
+		}
+		
+		buffer.append("]");
+		
+		return buffer.toString();
 	}
 	
 	public Result evaluate(ISplitAlgorithm splitter, IRankList ranker) {

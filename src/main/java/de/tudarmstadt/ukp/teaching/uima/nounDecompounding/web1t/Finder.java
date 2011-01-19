@@ -27,8 +27,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
@@ -178,7 +176,7 @@ public class Finder implements IDictionary {
 		}
 		
 		try {
-			ScoreDoc[] results = searcher.search(q, 50).scoreDocs;
+			ScoreDoc[] results = searcher.search(q, 100).scoreDocs;
 			Document doc;
 			
 			for (ScoreDoc scoreDoc : results) {

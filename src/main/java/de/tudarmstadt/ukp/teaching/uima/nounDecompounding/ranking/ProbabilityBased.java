@@ -44,7 +44,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
  */
 public class ProbabilityBased implements IRankList {
 
-	public static double FREQUENCY = 391558376699d; 
+	public static double FREQUENCY = 143782944956d;
 	
 	private Finder finder;
 
@@ -107,11 +107,11 @@ public class ProbabilityBased implements IRankList {
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		IRankList ranker = new ProbabilityBased(new Finder(new File("/home/jens/Desktop/web1tIndex")));
+		IRankList ranker = new ProbabilityBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
 		
 		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
 		RankingEvaluation.Result result = e.evaluate(splitter, ranker, 1000);
 		
-		System.out.println("Result " + result.recall + " (without morpheme: " + result.recallWithoutMorpheme + ")");
+		System.out.println(result.toString());
 	}
 }

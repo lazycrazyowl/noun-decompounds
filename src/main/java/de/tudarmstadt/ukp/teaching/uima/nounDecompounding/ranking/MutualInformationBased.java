@@ -23,6 +23,8 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
 import java.io.File;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,22 +39,15 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
-/**
- * Frequency based method
- * @author Jens Haase <je.haase@googlemail.com>
- */
-public class FrequencyBased implements IRankList {
+public class MutualInformationBased implements IRankList {
 
+	public static BigInteger FREQUENCY = new BigInteger("143782944956");
 	private Finder finder;
 
-	/**
-	 * Constructor
-	 * @param aFinder
-	 */
-	public FrequencyBased(Finder aFinder) {
+	public MutualInformationBased(Finder aFinder) {
 		this.finder = aFinder;
 	}
-	
+
 	@Override
 	public Split highestRank(List<Split> splits) {
 		return this.rank(splits).get(0);
@@ -63,48 +58,81 @@ public class FrequencyBased implements IRankList {
 		for (Split split : splits) {
 			split.setWeight(this.calcRank(split));
 		}
+
 		
-		Collections.sort(splits);
+		List<Split> filtered = new ArrayList<Split>();
+		for (Split split : splits) {
+			if (!(Float.isInfinite(split.getWeight()) || Float.isNaN(split.getWeight()))) {
+				filtered.add(split);
+			}
+		}
 		
-		return splits;
+		if (filtered.size() == 0) {
+			filtered = splits;
+		}
+
+		Collections.sort(filtered);
+		return filtered;
 	}
 
 	/**
 	 * Calculates the weight for a split
+	 * 
 	 * @param split
 	 * @return
 	 */
 	private float calcRank(Split split) {
-		float result = 1.0f;
-		
-		for (SplitElement elem : split.getSplits()) {
-			result *= this.getFreq(elem);
+		double total = 0;
+		double count = 0;
+		for (int i = 1; i < split.getSplits().size(); i++) {
+			SplitElement w1 = split.getSplits().get(i - 1);
+			SplitElement w2 = split.getSplits().get(i);
+
+			double a = this.freq(w1, w2).multiply(FREQUENCY).doubleValue();
+			double b = this.freq(w1).multiply(this.freq(w2)).doubleValue();
+			double mutal;
+			
+			if  (a == 0d) {
+				mutal = 0d;
+			} else {
+				mutal = Math.log(a / b);
+			}
+			
+			
+//			System.out.println(a + "/" + b + "=" + (a/b));
+//			System.out.println("Mutal ("+w1.getWord()+", "+w2.getWord()+"): "+mutal+" with "+this.freq(w1, w2)+", "+this.freq(w1)+", "+this.freq(w2));
+			
+			total += mutal;
+			count++;
 		}
 		
-		return (float) Math.pow(result, 1f / (float) split.getSplits().size());
+		return (float) (total / count);
 	}
 
-	/**
-	 * Returns the frequency for a split element
-	 * @param elem
-	 * @return
-	 */
-	private float getFreq(SplitElement elem) {
-		float total = 0f;
-		
-		for (NGram gram : finder.find(elem.getWord())) {
-			total += gram.getFreq();
+	private BigInteger freq(SplitElement w1) {
+		return this.freq(new String[] { w1.getWord() });
+	}
+
+	private BigInteger freq(SplitElement w1, SplitElement w2) {
+		return this.freq(new String[] { w1.getWord(), w2.getWord() });
+	}
+
+	private BigInteger freq(String[] words) {
+		BigInteger total = BigInteger.valueOf(0l);
+
+		for (NGram gram : finder.find(words)) {
+			total = total.add(BigInteger.valueOf(gram.getFreq()));
 		}
-		
+
 		return total;
 	}
-
+	
 	public static void main(String[] args) throws Exception {
 		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		IRankList ranker = new FrequencyBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
+		IRankList ranker = new MutualInformationBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
 		
 		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
 		RankingEvaluation.Result result = e.evaluate(splitter, ranker, 1000);

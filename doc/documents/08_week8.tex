@@ -1,0 +1,91 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[11pt, accentcolor=tud9b, nochapname]{tudexercise}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase}
+\title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Report Week 8}
+\subtitle{UIMA Software Project WS 2010/2011}
+\subsubtitle{Jens Haase}
+\date{\today}
+\maketitle
+
+\section{Work done in the last week}
+
+\subsection{Smaller index}
+To create a smaller web1t index only n-grams that contain dictionary words are added to the index. This reduces the index size from 23.4 GB to 12.8 GB. The execution time for the first 1000 stays at the same level as before (20 minutes).
+
+\subsection{Mutual Information ranking}
+As mentioned in week 5 the mutual information ranking algorithm was implemented. This algorithm checks the probability that two words appear in one n-gram. A problem of this algorithm is that the original word (not splitted) can not be ranked. That means this algorithm can not decide if a word should be splitted or not.
+
+\subsection{Current evaluation of ranking algorithm}
+The following table shows the current evaluation of the three splitting algorithms. Only the first 1000 words are evaluated to save time. For each algorithm we check if the correct word is at the first, second or third position. The Correct@1 value show how many correct splits are at the first position of the ranking. The Correct@2 value says if at the first or the second position is a correct split. The value in the braked do not check if the morphemes are set correctly, only if the splits are at the correct position.
+
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Algorithm} & \textbf{Correct@1} & \textbf{Correct@2} & \textbf{Correct@3} \\ \hline
+  Frequency Based & 0.511 (0.698) & 0.664 (0.778) & 0.618 (0.657) \\ \hline
+  Probability Based & 0.175 (0.243) & 0.588 (0.751) & 0.607 (0.63) \\ \hline
+  Mutual Information Based & 0.419 (0.603) & 0.476 (0.605) & 0.415 (0.452) \\ \hline
+\end{tabular}
+
+
+\subsection{Time Tracking}
+
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Needed time} & \textbf{Planned time} \\ \hline
+  2011-01-18 & Smaller index and mutual information algorithm & 8 & 10 \\ \hline
+  2011-01-19 & Evaluation and Report Writing & 3 & 3 \\ \hline
+\end{tabular}
+
+\section{Plan for next week}
+While the probability based method focuses more on words with less splits the mutual information algorithm focus on words with more splits. Bringing all this algorithm together can improve the results of the complete algorithms.
+Also a tree based ranking algorithm can result in better results.
+
+The next week should be the last week with a focus on the ranking algorithm. In the week after that a UIMA component should be implement at the code should be cleaned up.
+
+\vspace{10pt}
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2011-01-20 & Tree based method & 3 \\ \hline
+  2011-01-21 & Tree based method & 3 \\ \hline
+  2011-01-22 & Combine algorithms & 3 \\ \hline
+  2011-01-26 & Evaluation and Report Writing & 3 \\ \hline
+\end{tabular}
+
+\end{document}

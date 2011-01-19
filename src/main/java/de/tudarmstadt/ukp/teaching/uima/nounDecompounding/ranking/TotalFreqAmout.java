@@ -22,16 +22,17 @@
 
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.FSDirectory;
+
 /**
  * Caluclates the total amount of frequency.
- * This value is needed for the proabibliy based method
+ * This value is needed for the proabibliy/mutal based method
  * @author jens
  *
  */
@@ -39,8 +40,8 @@ public class TotalFreqAmout {
 
 	private File folder;
 
-	public TotalFreqAmout(File aWeb1tFolder) {
-		this.folder = aWeb1tFolder;
+	public TotalFreqAmout(File aWeb1tLucenceIndex) {
+		this.folder = aWeb1tLucenceIndex;
 	}
 	
 	/**
@@ -51,34 +52,23 @@ public class TotalFreqAmout {
 	public BigInteger countFreq() throws IOException {
 		BigInteger count = BigInteger.valueOf(0);
 		
-		File[] files;
+		FSDirectory dir = FSDirectory.open(this.folder);
+		IndexReader reader = IndexReader.open(dir);
 		
-		if (this.folder.isFile()) {
-			files = new File[]{ this.folder };
-		} else if (this.folder.isDirectory()) {
-			files = this.folder.listFiles();
-		} else {
-			throw new FileNotFoundException();
-		}
-		
-		int i = 0;
-		for (File file: files) {
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line;
-			String[] split;
-			while ((line = reader.readLine()) != null) {
-				split = line.split("\t");
-				count = count.add(new BigInteger(split[1]));
+		for (int i = 0; i < reader.maxDoc(); i++) {
+			if (reader.isDeleted(i)) {
+				continue;
 			}
-			i++;
-			System.out.println(file.getName() + " is Ready. Only " + (files.length-i) + " files left ...");
+			
+			Document doc = reader.document(i);
+			count = count.add(new BigInteger(doc.get("freq")));
 		}
 		
 		return count;
 	}
 	
 	public static void main(String[] args) throws IOException {
-		TotalFreqAmout amount = new TotalFreqAmout(new File("/home/jens/Desktop/web1t/GERMAN_EXTRACT"));
+		TotalFreqAmout amount = new TotalFreqAmout(new File("/home/jens/Desktop/web1tIndex4/0"));
 		System.out.println("Total amount: " + amount.countFreq());
 	}
 
