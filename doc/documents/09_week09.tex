@@ -1,0 +1,100 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[11pt, accentcolor=tud9b, nochapname]{tudexercise}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase}
+\title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Report Week 9}
+\subtitle{UIMA Software Project WS 2010/2011}
+\subsubtitle{Jens Haase}
+\date{\today}
+\maketitle
+
+\section{Work done in the last week}
+
+\subsection{Ranking algorithm on tree}
+Currently the ranking algorithm works only on lists. But the splitting algorithm returns also a tree. With a tree based ranking algorithm we can reduce the amount of calculation, when we walk along the tree.
+
+The current implementation takes the parent and all children and ranks these items. If the item with the highest rank is equal to the parent, we can return the parent as the total best item. If one of the children has the highest rank we recursively call the tree ranking function with the child as new parent.
+
+This method walks down the tree on one path until a parent is higher ranked as it's children or it reaches a leaf. The disadvantages of this method is that not all possibilities will be evaluated. The following tables shows the results:
+
+\vspace{10pt}
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Algorithm} & \textbf{Correct tree} & \textbf{Correct list} \\ \hline
+  Frequency Based & 0.53 (0.732) & 0.511 (0.698) \\ \hline
+  Probability Based & 0.173 (0.238) & 0.175 (0.243) \\ \hline
+  Mutual Information Based & 0.358 (0.521) & 0.419 (0.603) \\ \hline
+\end{tabular}
+\vspace{10pt}
+
+The difference between the list and the tree method are nearly equal. In the frequency based algorithm the tree method is a little bit better, while the mutual information based algorithm is a little bit worse.
+
+\subsection{Combine ranking algorithm}
+As next step I liked to combine all ranking algorithms. After reading some papers I came to the solution that only a machine learning algorithm can solve this problem. A learning algorithm can be trained to split a word in two parts with a bi-label classifier.
+
+This requires a lot of extra work because the current evaluation dataset only gives the complete split of a word. Because the final delivery is near I decide to skipped this task.
+
+\subsection{Testcases and refactoring}
+At least I did some refactoring and added some testcases. All testcases that require external data or tools are ignored if they are not found. This can decrease the test coverage but do not result in errors. With all tools and data installed the current test case coverage is 80.4 \% (line based).
+
+\subsection{Time Tracking}
+
+\begin{tabular}{l | l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Needed time} & \textbf{Planned time} \\ \hline
+  2011-01-20 & Tree based method & 4 & 6 \\ \hline
+  2011-01-21 & Combine algorithm & 5 & 3 \\ \hline
+  2011-01-26 & Testing and refactoring & 3 & 0 \\ \hline
+  2011-01-26 & Report Writing & 2 & 3 \\ \hline
+\end{tabular}
+
+\section{Plan for next week}
+In the following week I have to implement a UIMA component with the current algorithms. Also further code cleanup and JAVA documentation is planned.
+
+\vspace{10pt}
+\begin{tabular}{l | l | l}
+  \hline
+  \textbf{Date} & \textbf{Task} & \textbf{Planned time} \\ \hline
+  2011-01-27 & UIMA Component & 4 \\ \hline
+  2011-01-28 & Refactoring & 4 \\ \hline
+  2011-01-29 & Code cleanup & 4 \\ \hline
+  2011-01-30 & Java doc & 2 \\ \hline
+  2011-01-02 & Report Writing and final delivery & 3 \\ \hline
+\end{tabular}
+
+\end{document}
