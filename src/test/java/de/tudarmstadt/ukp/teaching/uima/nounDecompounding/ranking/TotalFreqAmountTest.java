@@ -20,45 +20,50 @@
  * THE SOFTWARE.
  */
 
-package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation;
+package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.math.BigInteger;
 
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
+import junit.framework.Assert;
 
-public class ExportCcorpusMorphemes {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-	private CcorpusReader reader;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
 
-	public ExportCcorpusMorphemes(CcorpusReader aReader) {
-		this.reader = aReader;
+public class TotalFreqAmountTest {
+
+	File source = new File("src/test/resources/n-grams");
+	File index = new File("target/test/LuceneIndexer");
+	
+	@Before
+	public void setUp() throws Exception {
+		index.mkdirs();
+		
+		// Create index
+		LuceneIndexer indexer = new LuceneIndexer(source, index, 2);
+		indexer.index();
 	}
 	
-	public Set<String> getMorphemes() throws IOException {
-		Set<String> morphemes = new HashSet<String>();
-		Split split;
-		while((split = reader.readSplit()) != null) {
-			for (SplitElement s : split.getSplits()) {
-				if (s.getMorpheme() != null) {
-					morphemes.add(s.getMorpheme());
-				}
+	@Test
+	public void testCount() throws IOException {
+		TotalFreqAmout amount = new TotalFreqAmout(index);
+		Assert.assertEquals(new BigInteger("310"), amount.countFreq());
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		// Delete index again
+		for (File f : index.listFiles()) {
+			for (File _f: f.listFiles()) {
+				_f.delete();
 			}
+			f.delete();
 		}
 		
-		return morphemes;
-	}
-	
-	
-	public static void main(String[] args) throws IOException {
-		ExportCcorpusMorphemes exporter = new ExportCcorpusMorphemes(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
-		Set<String> morphemes = exporter.getMorphemes();
-
-		for (String s : morphemes) {
-			System.out.println(s);
-		}
+		index.delete();
 	}
 }

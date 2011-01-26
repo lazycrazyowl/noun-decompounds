@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.List;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking.IRankList;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking.IRankTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.ISplitAlgorithm;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 
@@ -56,7 +57,7 @@ public class RankingEvaluation {
 		this.reader = aReader;
 	}
 	
-	public Result evaluate(ISplitAlgorithm splitter, IRankList ranker, int limit) {
+	public Result evaluateList(ISplitAlgorithm splitter, IRankList ranker, int limit) {
 		int total = 0, correct = 0, correctWithoutMorpheme = 0,
 			correctAt2 = 0, correctAt2WithoutMorpheme = 0,
 			correctAt3 = 0, correctAt3WithoutMorpheme = 0;
@@ -110,6 +111,37 @@ public class RankingEvaluation {
 		return r;
 	}
 	
+	public Result evaluateTree(ISplitAlgorithm splitter, IRankTree ranker, int limit) {
+		int total = 0, correct = 0, correctWithoutMorpheme = 0;
+		
+		try {
+			Split split, result;
+			while ((split = reader.readSplit()) != null && total < limit) {
+				result = ranker.highestRank((splitter.split(split.getWord())));
+				
+				if (result.equals(split)) {
+					correct++;
+				} else {
+					System.out.println(total + ": " + split + " -> " + result);
+				}
+				
+				if (result.equalWithoutMorpheme(split)) {
+					correctWithoutMorpheme++;
+				}
+				
+				total++;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Result r = new Result();
+		r.recall = (float) correct / (float) total;
+		r.recallWithoutMorpheme = (float) correctWithoutMorpheme / (float) total;
+		
+		return r;
+	}
+	
 	private String getResultList(List<Split> splits) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[");
@@ -129,6 +161,10 @@ public class RankingEvaluation {
 	}
 	
 	public Result evaluate(ISplitAlgorithm splitter, IRankList ranker) {
-		return this.evaluate(splitter, ranker, Integer.MAX_VALUE);
+		return this.evaluateList(splitter, ranker, Integer.MAX_VALUE);
+	}
+	
+	public Result evaluate(ISplitAlgorithm splitter, IRankTree ranker) {
+		return this.evaluateTree(splitter, ranker, Integer.MAX_VALUE);
 	}
 }

@@ -25,23 +25,58 @@ package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 /**
  * Caluclates the total amount of frequency.
  * This value is needed for the proabibliy/mutal based method
- * @author jens
+ * @author Jens Haase <je.haase@googlemail.com>
  *
  */
 public class TotalFreqAmout {
 
-	private File folder;
+	private List<FSDirectory> dirs = new ArrayList<FSDirectory>();
 
 	public TotalFreqAmout(File aWeb1tLucenceIndex) {
-		this.folder = aWeb1tLucenceIndex;
+		try {
+			if (this.checkForIndex(aWeb1tLucenceIndex)) {
+				FSDirectory dir = FSDirectory.open(aWeb1tLucenceIndex);
+				dir.setReadChunkSize(52428800);
+				dirs.add(dir);
+			} else {
+				for (File f : aWeb1tLucenceIndex.listFiles()) {
+					if (f.isDirectory() && this.checkForIndex(f)) {
+						FSDirectory dir = FSDirectory.open(f);
+						dir.setReadChunkSize(52428800);
+						dirs.add(dir);
+					}
+				}
+			}
+		} catch (CorruptIndexException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private boolean checkForIndex(File indexFolder) {
+		File[] files = indexFolder.listFiles();
+		boolean result = false;
+		
+		for (File file : files) {
+			if (file.isFile() && file.getName().startsWith("segments")) {
+				result = true;
+				break;
+			}
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -51,10 +86,21 @@ public class TotalFreqAmout {
 	 */
 	public BigInteger countFreq() throws IOException {
 		BigInteger count = BigInteger.valueOf(0);
+		for(FSDirectory dir: this.dirs) {
+			count = count.add(this.countFreq(dir));
+		}
+		return count;
+	}
+	
+	/**
+	 * Adds all frequency values for a special directory
+	 * @return
+	 * @throws IOException
+	 */
+	protected BigInteger countFreq(FSDirectory dir) throws IOException {
+		BigInteger count = BigInteger.valueOf(0);
 		
-		FSDirectory dir = FSDirectory.open(this.folder);
 		IndexReader reader = IndexReader.open(dir);
-		
 		for (int i = 0; i < reader.maxDoc(); i++) {
 			if (reader.isDeleted(i)) {
 				continue;

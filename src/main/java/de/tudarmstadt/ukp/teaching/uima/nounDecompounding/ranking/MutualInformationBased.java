@@ -36,10 +36,12 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.RankingEval
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.LeftToRightSplitAlgorithm;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
-public class MutualInformationBased implements IRankList {
+public class MutualInformationBased implements IRankList, IRankTree {
 
 	public static BigInteger FREQUENCY = new BigInteger("143782944956");
 	private Finder finder;
@@ -58,7 +60,6 @@ public class MutualInformationBased implements IRankList {
 		for (Split split : splits) {
 			split.setWeight(this.calcRank(split));
 		}
-
 		
 		List<Split> filtered = new ArrayList<Split>();
 		for (Split split : splits) {
@@ -70,7 +71,7 @@ public class MutualInformationBased implements IRankList {
 		if (filtered.size() == 0) {
 			filtered = splits;
 		}
-
+		
 		Collections.sort(filtered);
 		return filtered;
 	}
@@ -84,7 +85,18 @@ public class MutualInformationBased implements IRankList {
 	private float calcRank(Split split) {
 		double total = 0;
 		double count = 0;
+		
+		if (split.getSplits().size() == 1) {
+			// Entropy for single words
+			SplitElement w = split.getSplits().get(0);
+			double p = this.freq(w).doubleValue() / FREQUENCY.doubleValue();
+			
+			return (float) ((-1) * p * Math.log(p)); 
+		}
+		
 		for (int i = 1; i < split.getSplits().size(); i++) {
+			// Mutual Information for splits.
+			
 			SplitElement w1 = split.getSplits().get(i - 1);
 			SplitElement w2 = split.getSplits().get(i);
 
@@ -132,11 +144,38 @@ public class MutualInformationBased implements IRankList {
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		IRankList ranker = new MutualInformationBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
+		MutualInformationBased ranker = new MutualInformationBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
 		
 		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
-		RankingEvaluation.Result result = e.evaluate(splitter, ranker, 1000);
+		RankingEvaluation.Result result = e.evaluateTree(splitter, ranker, 1000);
 		
 		System.out.println(result.toString());
+	}
+
+	@Override
+	public Split highestRank(SplitTree tree) {
+		return this.highestRank(tree.getRoot());
+	}
+	
+	private Split highestRank(ValueNode<Split> parent) {
+		List<Split> children = parent.getChildrenValues();
+		if (children.size() == 0) {
+			return parent.getValue();
+		}
+		
+		children.add(parent.getValue());
+		List<Split> result = this.rank(children);
+		
+		if (result.get(0).equals(parent.getValue())) {
+			return parent.getValue();
+		} else {
+			for (ValueNode<Split> split : parent.getChildren()) {
+				if (result.get(0).equals(split.getValue())) {
+					return this.highestRank(split);
+				}
+			}
+		}
+		
+		return null;
 	}
 }

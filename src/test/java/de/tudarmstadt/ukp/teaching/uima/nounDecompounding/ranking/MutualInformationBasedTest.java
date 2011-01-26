@@ -23,6 +23,7 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +39,9 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
 
-public class FrequencyBasedTest {
+public class MutualInformationBasedTest {
 
-	static File source = new File("src/test/resources/ranking/n-grams");
+	static File source = new File("src/test/resources/ranking/n-grams-2");
 	static File index = new File("src/test/resources/ranking/index");
 	
 	@BeforeClass
@@ -49,11 +50,13 @@ public class FrequencyBasedTest {
 		
 		LuceneIndexer indexer = new LuceneIndexer(source, index);
 		indexer.index();
+		
+		MutualInformationBased.FREQUENCY = new BigInteger("163");
 	}
 	
 	@Test
 	public void testRankList() {
-		FrequencyBased ranker = new FrequencyBased(new Finder(index));
+		MutualInformationBased ranker = new MutualInformationBased(new Finder(index));
 		
 		List<Split> list = new ArrayList<Split>();
 		Split s1 = Split.createFromString("Aktionsplan");
@@ -64,6 +67,7 @@ public class FrequencyBasedTest {
 		list.add(s3);
 		
 		List<Split> result = ranker.rank(list);
+		System.out.println(result);
 		Assert.assertEquals(s1, result.get(1));
 		Assert.assertEquals(s2, result.get(2));
 		Assert.assertEquals(s3, result.get(0));
@@ -74,7 +78,7 @@ public class FrequencyBasedTest {
 	
 	@Test
 	public void testRankTree() {
-		FrequencyBased ranker = new FrequencyBased(new Finder(index));
+		MutualInformationBased ranker = new MutualInformationBased(new Finder(index));
 		
 		Split s1 = Split.createFromString("Aktionsplan");
 		Split s2 = Split.createFromString("Akt+ion(s)+plan");

@@ -34,6 +34,8 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.evaluation.RankingEval
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.LeftToRightSplitAlgorithm;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
@@ -41,7 +43,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
  * Frequency based method
  * @author Jens Haase <je.haase@googlemail.com>
  */
-public class FrequencyBased implements IRankList {
+public class FrequencyBased implements IRankList, IRankTree {
 
 	private Finder finder;
 
@@ -104,11 +106,38 @@ public class FrequencyBased implements IRankList {
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
-		IRankList ranker = new FrequencyBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
+		FrequencyBased ranker = new FrequencyBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
 		
 		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
-		RankingEvaluation.Result result = e.evaluate(splitter, ranker, 1000);
+		RankingEvaluation.Result result = e.evaluateTree(splitter, ranker, 1000);
 		
 		System.out.println(result.toString());
+	}
+
+	@Override
+	public Split highestRank(SplitTree tree) {
+		return this.highestRank(tree.getRoot());
+	}
+	
+	private Split highestRank(ValueNode<Split> parent) {
+		List<Split> children = parent.getChildrenValues();
+		if (children.size() == 0) {
+			return parent.getValue();
+		}
+		
+		children.add(parent.getValue());
+		List<Split> result = this.rank(children);
+		
+		if (result.get(0).equals(parent.getValue())) {
+			return parent.getValue();
+		} else {
+			for (ValueNode<Split> split : parent.getChildren()) {
+				if (result.get(0).equals(split.getValue())) {
+					return this.highestRank(split);
+				}
+			}
+		}
+		
+		return null;
 	}
 }

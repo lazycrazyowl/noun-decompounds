@@ -33,6 +33,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
 
@@ -50,7 +52,7 @@ public class ProbabilityBasedTest {
 	}
 	
 	@Test
-	public void testRank() {
+	public void testRankList() {
 		ProbabilityBased ranker = new ProbabilityBased(new Finder(index));
 		
 		List<Split> list = new ArrayList<Split>();
@@ -69,6 +71,22 @@ public class ProbabilityBasedTest {
 		
 		
 		Assert.assertEquals(s1, ranker.highestRank(list));
+	}
+	
+	@Test
+	public void testRankTree() {
+		ProbabilityBased ranker = new ProbabilityBased(new Finder(index));
+		
+		Split s1 = Split.createFromString("Aktionsplan");
+		Split s2 = Split.createFromString("Akt+ion(s)+plan");
+		Split s3 = Split.createFromString("Aktion(s)+plan");
+		
+		SplitTree tree = new SplitTree(s1);
+		tree.getRoot().addChild(new ValueNode<Split>(s2));
+		tree.getRoot().addChild(new ValueNode<Split>(s3));
+		
+		Split result = ranker.highestRank(tree);
+		Assert.assertEquals(s1, result);
 	}
 	
 	@AfterClass

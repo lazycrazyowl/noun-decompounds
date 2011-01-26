@@ -68,6 +68,17 @@ public class ValueNode<V> {
 		return children;
 	}
 	
+	public List<V> getChildrenValues() {
+		List<ValueNode<V>> values = this.getChildren();
+		List<V> result = new ArrayList<V>();
+		
+		for (ValueNode<V> value : values) {
+			result.add(value.getValue());
+		}
+		
+		return result;
+	}
+	
 	/**
 	 * Sets the children for this node
 	 * @param children

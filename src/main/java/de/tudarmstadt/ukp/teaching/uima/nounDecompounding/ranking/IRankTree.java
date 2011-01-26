@@ -40,11 +40,4 @@ public interface IRankTree {
 	 * @return
 	 */
 	public Split highestRank(SplitTree tree);
-	
-	/**
-	 * Ranks a split tree and returns a ordered list
-	 * @param tree
-	 * @return
-	 */
-	public List<Split> rank(SplitTree tree);
 }

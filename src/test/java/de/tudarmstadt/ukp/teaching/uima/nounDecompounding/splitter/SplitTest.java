@@ -90,6 +90,15 @@ public class SplitTest {
 	}
 	
 	@Test
+	public void testEqualsWithoutMorpheme() {
+		Split e1 = Split.createFromString("zugang(s)+liste");
+		Split e2 = Split.createFromString("zugangs+liste");
+		
+		Assert.assertTrue(e1.equalWithoutMorpheme(e2));
+		Assert.assertTrue(e2.equalWithoutMorpheme(e1));
+	}
+	
+	@Test
 	public void testReplaceSplit() {
 		Split s = Split.createFromString("Donau+dampfschiff+fahrt");
 		s.replaceSplitElement(1, Split.createFromString("dampf+schiff"));
@@ -116,8 +125,6 @@ public class SplitTest {
 		s3.setWeight(1);
 		
 		Collections.sort(splits);
-		
-		System.out.println(splits);
 		
 		Assert.assertEquals(s2, splits.get(0));
 		Assert.assertEquals(s1, splits.get(1));

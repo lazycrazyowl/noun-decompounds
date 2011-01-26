@@ -26,16 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ParallelMultiSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -50,54 +47,8 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary
  */
 public class Finder implements IDictionary {
 
-//	List<IndexFinder> finder = new ArrayList<IndexFinder>();
-//	List<IndexReader> readerList = new ArrayList<IndexReader>();
-//	List<IndexSearcher> searcherList = new ArrayList<IndexSearcher>();
 	private ParallelMultiSearcher searcher;
 	private LRUCache<String, List<NGram>> cache = new LRUCache<String, List<NGram>>();
-//	ExecutorService executer = Executors.newCachedThreadPool();
-	
-	protected class IndexFinder implements Callable<List<NGram>> {
-
-		private IndexReader ir;
-		private IndexSearcher searcher;
-		private Query q;
-		private LRUCache<String, List<NGram>> cache = new LRUCache<String, List<NGram>>();
-		
-		public IndexFinder(IndexReader aReader, IndexSearcher aSearcher) {
-			this.ir = aReader;
-			this.searcher = aSearcher;
-		}
-		
-		public void setQuery(Query query) {
-			this.q = query;
-		}
-		
-		@Override
-		public List<NGram> call() throws Exception {
-			long startTime = System.currentTimeMillis();
-			if (cache.get(q.toString()) != null) {
-				return cache.get(q.toString());
-			}
-			
-			List<NGram> ngrams = new ArrayList<NGram>();
-			ScoreDoc[] results = searcher.search(q, 100).scoreDocs;
-			Document doc;
-			
-			for (ScoreDoc scoreDoc : results) {
-				 doc = ir.document(scoreDoc.doc);
-				 ngrams.add(new NGram(doc.get("gram"), Integer.valueOf(doc.get("freq"))));
-			}
-			
-			cache.put(q.toString(), ngrams);
-			
-			long endTime = System.currentTimeMillis();
-			System.out.println("Call: " + (endTime-startTime));
-			
-			return ngrams;
-		}
-		
-	}
 	
 	/**
 	 * Constructor for the finder.
@@ -111,14 +62,12 @@ public class Finder implements IDictionary {
 		try {
 			List<IndexSearcher> searcherList = new ArrayList<IndexSearcher>();
 			if (this.checkForIndex(indexFolder)) {
-//				readerList.add(IndexReader.open(FSDirectory.open(indexFolder)));
 				FSDirectory dir = FSDirectory.open(indexFolder);
 				dir.setReadChunkSize(52428800);
 				searcherList.add(new IndexSearcher(dir));
 			} else {
 				for (File f : indexFolder.listFiles()) {
 					if (f.isDirectory() && this.checkForIndex(f)) {
-//						readerList.add(IndexReader.open(FSDirectory.open(f)));
 						FSDirectory dir = FSDirectory.open(f);
 						dir.setReadChunkSize(52428800);
 						searcherList.add(new IndexSearcher(dir));

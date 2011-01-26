@@ -42,6 +42,10 @@ public class SplitTree {
 		this.root = new ValueNode<Split>(Split.createFromString(word));
 	}
 	
+	public SplitTree(Split s) {
+		this.root = new ValueNode<Split>(s);
+	}
+	
 	public ValueNode<Split> getRoot() {
 		return root;
 	}
