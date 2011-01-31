@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.LinkingMorphemes;
@@ -39,15 +41,19 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
-public class MutualInformationBased implements IRankList, IRankTree {
+/**
+ * Mutual informationen based ranking algorithm.
+ * See doc folder for more information
+ * 
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
+public class MutualInformationBased extends AbstractRanker implements IRankListAndTree {
 
 	public static BigInteger FREQUENCY = new BigInteger("143782944956");
-	private Finder finder;
 
 	public MutualInformationBased(Finder aFinder) {
-		this.finder = aFinder;
+		super(aFinder);
 	}
 
 	@Override
@@ -111,47 +117,13 @@ public class MutualInformationBased implements IRankList, IRankTree {
 			}
 			
 			
-//			System.out.println(a + "/" + b + "=" + (a/b));
-//			System.out.println("Mutal ("+w1.getWord()+", "+w2.getWord()+"): "+mutal+" with "+this.freq(w1, w2)+", "+this.freq(w1)+", "+this.freq(w2));
-			
 			total += mutal;
 			count++;
 		}
 		
 		return (float) (total / count);
 	}
-
-	private BigInteger freq(SplitElement w1) {
-		return this.freq(new String[] { w1.getWord() });
-	}
-
-	private BigInteger freq(SplitElement w1, SplitElement w2) {
-		return this.freq(new String[] { w1.getWord(), w2.getWord() });
-	}
-
-	private BigInteger freq(String[] words) {
-		BigInteger total = BigInteger.valueOf(0l);
-
-		for (NGram gram : finder.find(words)) {
-			total = total.add(BigInteger.valueOf(gram.getFreq()));
-		}
-
-		return total;
-	}
 	
-	public static void main(String[] args) throws Exception {
-		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
-		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
-		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
-		
-		MutualInformationBased ranker = new MutualInformationBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
-		
-		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
-		RankingEvaluation.Result result = e.evaluateTree(splitter, ranker, 1000);
-		
-		System.out.println(result.toString());
-	}
-
 	@Override
 	public Split highestRank(SplitTree tree) {
 		return this.highestRank(tree.getRoot());
@@ -177,5 +149,31 @@ public class MutualInformationBased implements IRankList, IRankTree {
 		}
 		
 		return null;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		CommandLine cmd = AbstractRanker.parseArgs(args);
+		if (cmd == null) {
+			return;
+		}
+		
+		int limit = AbstractRanker.getLimitOption(cmd);
+		String indexPath = AbstractRanker.getIndexPathOption(cmd);
+		
+		
+		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
+		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
+		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
+		
+		MutualInformationBased ranker = new MutualInformationBased(new Finder(new File(indexPath)));
+		
+		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
+		RankingEvaluation.Result[] result = e.evaluateListAndTree(splitter, ranker, limit);
+		
+		// Print result
+		System.out.println("List:");
+		System.out.println(result[0].toString());
+		System.out.println("Tree:");
+		System.out.println(result[1].toString());
 	}
 }

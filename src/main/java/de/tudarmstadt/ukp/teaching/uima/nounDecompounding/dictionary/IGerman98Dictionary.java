@@ -100,6 +100,9 @@ public class IGerman98Dictionary extends SimpleDictionary {
 		return words;
 	}
 
+	/**
+	 * Reads the affix file and processes the data
+	 */
 	protected void readAffixFile() {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(this.affix));
@@ -119,6 +122,12 @@ public class IGerman98Dictionary extends SimpleDictionary {
 		}
 	}
 
+	/**
+	 * Parse a affix in the affix file
+	 * @param header The header of the affix
+	 * @param reader The file reader to read the rest of the affix
+	 * @throws IOException
+	 */
 	private void parseAffix(String header, BufferedReader reader) throws IOException {
 		String args[] = header.split("\\s+");
 		
@@ -146,6 +155,12 @@ public class IGerman98Dictionary extends SimpleDictionary {
 		}
 	}
 	
+	/**
+	 * Uses affixes to build new words
+	 * @param word
+	 * @param flags
+	 * @return
+	 */
 	protected List<String> buildWords(String word, char[] flags) {
 		List<String> words = new ArrayList<String>();
 		for (char c : flags) {

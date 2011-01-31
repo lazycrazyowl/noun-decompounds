@@ -41,7 +41,6 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
  */
 public class DataDrivenAlgorithm implements ISplitAlgorithm {
 
-
 	private Trie forwardTrie;
 	private Trie backwardTrie;
 	private LinkingMorphemes morphmes;

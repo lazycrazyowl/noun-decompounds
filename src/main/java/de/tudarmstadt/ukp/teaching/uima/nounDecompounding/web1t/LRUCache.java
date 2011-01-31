@@ -26,6 +26,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Least recently used cache.
+ * 
+ * @author Jens Haase <je.haase@googlemail.com>
+ *
+ * @param <K> A key class
+ * @param <V> A value class
+ */
 public class LRUCache<K, V> {
 
 	private final Map<K, V> cachedData;

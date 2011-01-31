@@ -26,6 +26,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.LinkingMorphemes;
@@ -37,25 +39,21 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
 /**
  * Probability based ranking method
  * @author Jens Haase <je.haase@googlemail.com>
- *
  */
-public class ProbabilityBased implements IRankList, IRankTree {
+public class ProbabilityBased extends AbstractRanker implements IRankListAndTree {
 
 	public static double FREQUENCY = 143782944956d;
 	
-	private Finder finder;
-
 	/**
 	 * Constructor
 	 * @param aFinder
 	 */
 	public ProbabilityBased(Finder aFinder) {
-		this.finder = aFinder;
+		super(aFinder);
 	}
 	
 	@Override
@@ -83,38 +81,10 @@ public class ProbabilityBased implements IRankList, IRankTree {
 		float result = 0;
 		
 		for (SplitElement elem : split.getSplits()) {
-			result += -1 * Math.log((double) this.getFreq(elem) / FREQUENCY);
+			result += -1 * Math.log(this.freq(elem).doubleValue() / FREQUENCY);
 		}
 		
 		return result;
-	}
-
-	/**
-	 * Returns the frequence for a split element
-	 * @param elem
-	 * @return
-	 */
-	private int getFreq(SplitElement elem) {
-		int total = 0;
-		
-		for (NGram gram : finder.find(elem.getWord())) {
-			total += gram.getFreq();
-		}
-		
-		return total;
-	}
-
-	public static void main(String[] args) throws Exception {
-		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
-		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
-		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
-		
-		ProbabilityBased ranker = new ProbabilityBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
-		
-		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
-		RankingEvaluation.Result result = e.evaluateTree(splitter, ranker, 1000);
-		
-		System.out.println(result.toString());
 	}
 
 	@Override
@@ -142,5 +112,29 @@ public class ProbabilityBased implements IRankList, IRankTree {
 		}
 		
 		return null;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		CommandLine cmd = AbstractRanker.parseArgs(args);
+		if (cmd == null) {
+			return;
+		}
+		
+		int limit = AbstractRanker.getLimitOption(cmd);
+		String indexPath = AbstractRanker.getIndexPathOption(cmd);
+		
+		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
+		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
+		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
+		
+		ProbabilityBased ranker = new ProbabilityBased(new Finder(new File(indexPath)));
+		
+		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
+		RankingEvaluation.Result[] result = e.evaluateListAndTree(splitter, ranker, limit);
+		
+		System.out.println("List:");
+		System.out.println(result[0].toString());
+		System.out.println("Tree:");
+		System.out.println(result[1].toString());
 	}
 }

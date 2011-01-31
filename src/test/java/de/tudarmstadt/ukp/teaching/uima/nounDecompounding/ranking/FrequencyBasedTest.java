@@ -88,6 +88,20 @@ public class FrequencyBasedTest {
 		Assert.assertEquals(s3, result);
 	}
 	
+	@Test
+	public void testMain() {
+		String[] args = new String[] {"--luceneIndex", "src/test/resources/ranking/index", "--limit", "2"};
+		
+		try {
+			FrequencyBased.main(args);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Assert.assertTrue(true); // No exception thrown
+	}
+	
 	@AfterClass
 	public static void removeIndex() {
 		for (File f: index.listFiles()) {

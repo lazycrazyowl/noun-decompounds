@@ -22,8 +22,6 @@
 
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
-import java.util.List;
-
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 

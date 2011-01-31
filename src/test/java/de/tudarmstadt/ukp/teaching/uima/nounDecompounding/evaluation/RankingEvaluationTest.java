@@ -33,6 +33,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking.IRankList;
+import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking.IRankListAndTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking.IRankTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.ISplitAlgorithm;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
@@ -90,12 +91,32 @@ public class RankingEvaluationTest {
 		
 	}
 	
+	protected class ListAndTreeRankerMock implements IRankListAndTree {
+		@Override
+		public Split highestRank(List<Split> splits) {
+			return this.rank(splits).get(0);
+		}
+
+		@Override
+		public List<Split> rank(List<Split> splits) {
+			// Add dummys at the end to have more than one object
+			splits.add(Split.createFromString("dummy"));
+			splits.add(Split.createFromString("dummy+split"));
+			return splits;
+		}
+		
+		@Override
+		public Split highestRank(SplitTree tree) {
+			return tree.getRoot().getValue();
+		}		
+	}
+	
 	
 	@Test
 	public void testListEvaluation() {
 		try {
 			RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
-			RankingEvaluation.Result r = e.evaluate(new SplitterMock(), new ListRankerMock());
+			RankingEvaluation.Result r = e.evaluateList(new SplitterMock(), new ListRankerMock());
 			
 			Assert.assertEquals(0.4f, r.recall);
 			Assert.assertEquals(0.5f, r.recallWithoutMorpheme);
@@ -115,7 +136,7 @@ public class RankingEvaluationTest {
 	public void testTreeEvaluation() {
 		try {
 			RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
-			RankingEvaluation.Result r = e.evaluate(new SplitterMock(), new TreeRankerMock());
+			RankingEvaluation.Result r = e.evaluateTree(new SplitterMock(), new TreeRankerMock());
 			
 			Assert.assertEquals(0.4f, r.recall);
 			Assert.assertEquals(0.5f, r.recallWithoutMorpheme);
@@ -125,6 +146,36 @@ public class RankingEvaluationTest {
 			
 			Assert.assertEquals(0f, r.recallAt2);
 			Assert.assertEquals(0f, r.recallAt2WithoutMorpheme);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void testListAndTreeEvaluation() {
+		try {
+			RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
+			RankingEvaluation.Result[] r = e.evaluateListAndTree(new SplitterMock(), new ListAndTreeRankerMock());
+			
+			Assert.assertEquals(0.4f, r[0].recall);
+			Assert.assertEquals(0.5f, r[0].recallWithoutMorpheme);
+			
+			Assert.assertEquals(0.4f, r[0].recallAt2);
+			Assert.assertEquals(0.5f, r[0].recallAt2WithoutMorpheme);
+			
+			Assert.assertEquals(0.4f, r[0].recallAt2);
+			Assert.assertEquals(0.5f, r[0].recallAt2WithoutMorpheme);
+			
+			
+			Assert.assertEquals(0.4f, r[1].recall);
+			Assert.assertEquals(0.5f, r[1].recallWithoutMorpheme);
+			
+			Assert.assertEquals(0f, r[1].recallAt2);
+			Assert.assertEquals(0f, r[1].recallAt2WithoutMorpheme);
+			
+			Assert.assertEquals(0f, r[1].recallAt2);
+			Assert.assertEquals(0f, r[1].recallAt2WithoutMorpheme);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

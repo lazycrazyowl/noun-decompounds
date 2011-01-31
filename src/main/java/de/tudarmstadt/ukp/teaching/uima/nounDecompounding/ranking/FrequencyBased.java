@@ -23,8 +23,12 @@
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.cli.CommandLine;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IDictionary;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.dictionary.IGerman98Dictionary;
@@ -37,22 +41,21 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.NGram;
 
 /**
- * Frequency based method
+ * Frequency based ranking algorithm. See doc folder
+ * for more informations.
+ * 
  * @author Jens Haase <je.haase@googlemail.com>
  */
-public class FrequencyBased implements IRankList, IRankTree {
-
-	private Finder finder;
+public class FrequencyBased extends AbstractRanker implements IRankListAndTree {
 
 	/**
 	 * Constructor
 	 * @param aFinder
 	 */
 	public FrequencyBased(Finder aFinder) {
-		this.finder = aFinder;
+		super(aFinder);
 	}
 	
 	@Override
@@ -77,41 +80,13 @@ public class FrequencyBased implements IRankList, IRankTree {
 	 * @return
 	 */
 	private float calcRank(Split split) {
-		float result = 1.0f;
+		BigInteger result = new BigInteger("1");
 		
 		for (SplitElement elem : split.getSplits()) {
-			result *= this.getFreq(elem);
+			result = result.multiply(this.freq(elem));
 		}
 		
-		return (float) Math.pow(result, 1f / (float) split.getSplits().size());
-	}
-
-	/**
-	 * Returns the frequency for a split element
-	 * @param elem
-	 * @return
-	 */
-	private float getFreq(SplitElement elem) {
-		float total = 0f;
-		
-		for (NGram gram : finder.find(elem.getWord())) {
-			total += gram.getFreq();
-		}
-		
-		return total;
-	}
-
-	public static void main(String[] args) throws Exception {
-		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
-		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
-		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
-		
-		FrequencyBased ranker = new FrequencyBased(new Finder(new File("/home/jens/Desktop/web1tIndex4")));
-		
-		RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
-		RankingEvaluation.Result result = e.evaluateTree(splitter, ranker, 1000);
-		
-		System.out.println(result.toString());
+		return (float) Math.pow(result.doubleValue(), 1f / (double) split.getSplits().size());
 	}
 
 	@Override
@@ -119,6 +94,11 @@ public class FrequencyBased implements IRankList, IRankTree {
 		return this.highestRank(tree.getRoot());
 	}
 	
+	/**
+	 * Searches a a path throw the tree
+	 * @param parent
+	 * @return
+	 */
 	private Split highestRank(ValueNode<Split> parent) {
 		List<Split> children = parent.getChildrenValues();
 		if (children.size() == 0) {
@@ -139,5 +119,37 @@ public class FrequencyBased implements IRankList, IRankTree {
 		}
 		
 		return null;
+	}
+	
+	public static void main(String[] args) {
+		CommandLine cmd = AbstractRanker.parseArgs(args);
+		if (cmd == null) {
+			return;
+		}
+		
+		int limit = AbstractRanker.getLimitOption(cmd);
+		String indexPath = AbstractRanker.getIndexPathOption(cmd);
+		
+		// Setup
+		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
+		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
+		LeftToRightSplitAlgorithm splitter = new LeftToRightSplitAlgorithm(dict, morphemes);
+		
+		FrequencyBased ranker = new FrequencyBased(new Finder(new File(indexPath)));
+		
+		// Execute
+		try {
+			RankingEvaluation e = new RankingEvaluation(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")));
+			RankingEvaluation.Result[] result = e.evaluateListAndTree(splitter, ranker, limit);
+
+			// Print result
+			System.out.println("List:");
+			System.out.println(result[0].toString());
+			System.out.println("Tree:");
+			System.out.println(result[1].toString());
+		} catch (FileNotFoundException e1) {
+			System.err.println( "Error: " + e1.getMessage() );
+			e1.printStackTrace();
+		}
 	}
 }

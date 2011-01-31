@@ -46,18 +46,6 @@ public class SplitterEvaluationTest {
 	}
 	
 	@Test
-	public void testCreateSplit() throws FileNotFoundException {
-		SplitterEvaluation e = new SplitterEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
-		
-		Assert.assertEquals("blei+stift+strich(e)", e.createSplit("blei{N}+stift{N,V}+strich(e){N}").toString());
-		Assert.assertEquals("ort(s)+netz+monopol", e.createSplit("ort|s{N,V}+netz{N,V}+monopol{N}").toString());
-		Assert.assertEquals("dat(en)+satz+format", e.createSplit("dat,um|en{N}+satz{N}+format{N}").toString());
-		Assert.assertEquals("schul+referat", e.createSplit("schul,e{N}+referat{N}").toString());
-		Assert.assertEquals("sand+körn(er)", e.createSplit("sand{N}+kOrn(er){N}").toString());
-		Assert.assertEquals("typ+abbildung", e.createSplit("typ{N,V}+ab{PREP}+bildung{N}").toString());
-	}
-	
-	@Test
 	public void testEvaluation() throws FileNotFoundException {
 		SplitterEvaluation e = new SplitterEvaluation(new CcorpusReader(new File("src/test/resources/ccorpus.txt")));
 		

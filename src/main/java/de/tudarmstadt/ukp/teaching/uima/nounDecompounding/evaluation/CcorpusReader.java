@@ -36,6 +36,11 @@ import java.util.regex.Pattern;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 
+/**
+ * A reader for the Corpus data.
+ * @author Jens Haase <je.haase@googlemail.com>
+ *
+ */
 public class CcorpusReader extends BufferedReader {
 
 	public CcorpusReader(File file) throws FileNotFoundException {
@@ -46,6 +51,11 @@ public class CcorpusReader extends BufferedReader {
 		super(in);
 	}
 	
+	/**
+	 * Reads the next split from the file
+	 * @return
+	 * @throws IOException
+	 */
 	public Split readSplit() throws IOException {
 		String line = this.readLine();
 		if (line == null) {
@@ -113,6 +123,12 @@ public class CcorpusReader extends BufferedReader {
 		return s;
 	}
 	
+	/**
+	 * Replaces german umlaute. In the corupus umlaute are replaces
+	 * by the big letters
+	 * @param word
+	 * @return
+	 */
 	private String replaceUmlaute(String word) {
 		return word.replace("O", "ö").replace("A", "ä").replace("U", "ü");
 	}

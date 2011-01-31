@@ -65,6 +65,11 @@ public class TotalFreqAmout {
 		}
 	}
 	
+	/**
+	 * Checks if the folder is a lucence index
+	 * @param indexFolder
+	 * @return
+	 */
 	private boolean checkForIndex(File indexFolder) {
 		File[] files = indexFolder.listFiles();
 		boolean result = false;

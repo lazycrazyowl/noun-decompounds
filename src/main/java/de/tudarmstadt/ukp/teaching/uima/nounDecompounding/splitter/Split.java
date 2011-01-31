@@ -175,6 +175,10 @@ public class Split implements Comparable<Split> {
 		return s;
 	}
 	
+	/**
+	 * Returns the complete word without + or ()
+	 * @return
+	 */
 	public String getWord() {
 		String word = "";
 		for (SplitElement e : this.getSplits()) {

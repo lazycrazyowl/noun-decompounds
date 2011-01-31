@@ -47,6 +47,16 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitElement;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.SplitTree;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
 
+/**
+ * Uses a splitting algorithm to split words.
+ * The resulting trees will exported to couchdb.
+ * 
+ * Then the data can be used to visualize the tree
+ * in a browser.
+ * 
+ * @author Jens Haase <je.haase@googlemail.com>
+ *
+ */
 public class CouchDbExport {
 	
 	private CouchDbInstance dbInstance;
@@ -63,6 +73,11 @@ public class CouchDbExport {
 		db.createDatabaseIfNotExists();
 	}
 	
+	/**
+	 * Export data to couchdb
+	 * @param algo The splitting algorithm
+	 * @param limit Limits the amount of data that is exported.
+	 */
 	public void export(ISplitAlgorithm algo, int limit) {
 		try {
 			Split split;
@@ -84,6 +99,12 @@ public class CouchDbExport {
 		}
 	}
 	
+	/**
+	 * Creates a new couchdb document
+	 * @param correct The correct split
+	 * @param tree The split tree from the splitting algorithm
+	 * @return
+	 */
 	private Object createDoc(Split correct, SplitTree tree) {
 		Map<String, Object> doc = new HashMap<String, Object>();
 		doc.put("word", tree.getRoot().getValue().getWord());
@@ -93,6 +114,11 @@ public class CouchDbExport {
 		return doc;
 	}
 
+	/**
+	 * Creates all nodes for the tree
+	 * @param node
+	 * @return
+	 */
 	private Map<String, Object> createNode(ValueNode<Split> node) {
 		Map<String, Object> doc = new HashMap<String, Object>();
 		doc.put("id", node.hashCode());
@@ -107,6 +133,11 @@ public class CouchDbExport {
 		return doc;
 	}
 	
+	/**
+	 * Creates a html element from a split
+	 * @param elements
+	 * @return
+	 */
 	private String generateName(List<SplitElement> elements) {
 		String s = "";
 		for (int i = 0; i < elements.size(); i++) {

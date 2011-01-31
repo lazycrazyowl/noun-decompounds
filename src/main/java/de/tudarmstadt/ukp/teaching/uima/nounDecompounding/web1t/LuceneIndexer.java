@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -75,6 +76,11 @@ public class LuceneIndexer {
 	private int indexes;
 	private IDictionary dictionary;
 	
+	/**
+	 * A Worker thread.
+	 * 
+	 * @author Jens Haase <je.haase@googlemail.com>
+	 */
 	protected class Worker extends Thread {
 
 		private List<File> files;
@@ -225,20 +231,29 @@ public class LuceneIndexer {
 	 * 
 	 * @param args
 	 */
+	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
 		Options options = new Options();
-		options.addOption("web1t", true, "Folder with the web1t extracted documents");
-		options.addOption("outputPath", true, "File, where the index should be created");
-		options.addOption("index", true, "(optional) Number of how many indexes should be created. Default: 1");
-		options.addOption("igerman98", false, "If this argument is set, only words of the german dictionary will be added to the index");
+		options.addOption(OptionBuilder.withLongOpt("web1t")
+				.withDescription("Folder with the web1t extracted documents")
+				.hasArg().isRequired().create());
+		options.addOption(OptionBuilder.withLongOpt("outputPath")
+				.withDescription("File, where the index should be created")
+				.hasArg().isRequired().create());
+		options.addOption(OptionBuilder.withLongOpt("index")
+				.withDescription("(optional) Number of how many indexes should be created. Default: 1")
+				.hasArg().create());
+		options.addOption(OptionBuilder.withLongOpt("igerman98")
+				.withDescription("(optional) If this argument is set, only words of the german dictionary will be added to the index")
+				.create());
 		
 		CommandLineParser parser = new PosixParser();
 		try {
 			CommandLine cmd = parser.parse(options, args);
 			
-			int i = Integer.valueOf(cmd.getOptionValue("index"));
-			if (i <= 0) {
-				i = 1;
+			int i = 1;
+			if (cmd.hasOption("index")) {
+				i = Integer.valueOf(cmd.getOptionValue("index"));
 			}
 			
 			LuceneIndexer indexer = new LuceneIndexer(
@@ -254,7 +269,7 @@ public class LuceneIndexer {
 			System.err.println( "Error: " + e.getMessage() );
 			
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("CouchDBIndexer", options);
+			formatter.printHelp("LuceneIndexer", options);
 		}
 	}
 }
