@@ -238,8 +238,8 @@ public class RankingEvaluation {
 		resultList.recallAt3WithoutMorpheme = (float) correctAt3WithoutMorpheme / (float) total;
 		
 		Result resultTree = new Result();
-		resultTree.recall = (float) correct / (float) total;
-		resultTree.recallWithoutMorpheme = (float) correctWithoutMorpheme / (float) total;
+		resultTree.recall = (float) correctTree / (float) total;
+		resultTree.recallWithoutMorpheme = (float) correctTreeWithoutMorpheme / (float) total;
 		
 		return new Result[]{resultList, resultTree};
 	}
