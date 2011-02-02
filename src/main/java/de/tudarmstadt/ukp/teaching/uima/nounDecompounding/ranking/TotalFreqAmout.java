@@ -28,6 +28,13 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
@@ -118,8 +125,26 @@ public class TotalFreqAmout {
 		return count;
 	}
 	
+	@SuppressWarnings("static-access")
 	public static void main(String[] args) throws IOException {
-		TotalFreqAmout amount = new TotalFreqAmout(new File("/home/jens/Desktop/web1tIndex4/0"));
+		Options options = new Options();
+		options.addOption(OptionBuilder.withLongOpt("index")
+				.withDescription("The path to the web1t lucene index")
+				.hasArg().isRequired().create());
+		
+		CommandLineParser parser = new PosixParser();
+		CommandLine cmd;
+		try {
+			cmd = parser.parse(AbstractRanker.basicOptions(), args);
+		} catch (ParseException e) {
+			System.err.println( "Error: " + e.getMessage() );
+			
+			HelpFormatter formatter = new HelpFormatter();
+			formatter.printHelp("countTotalFreq", AbstractRanker.basicOptions());
+			return;
+		}
+		
+		TotalFreqAmout amount = new TotalFreqAmout(new File(cmd.getOptionValue("index")));
 		System.out.println("Total amount: " + amount.countFreq());
 	}
 
