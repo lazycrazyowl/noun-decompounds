@@ -22,9 +22,13 @@
 
 package de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -46,7 +50,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
  */
 public class ProbabilityBased extends AbstractRanker implements IRankListAndTree {
 
-	public static double FREQUENCY = 143782944956d;
+	public static BigInteger FREQUENCY = new BigInteger("143782944956");
 	
 	/**
 	 * Constructor
@@ -54,6 +58,17 @@ public class ProbabilityBased extends AbstractRanker implements IRankListAndTree
 	 */
 	public ProbabilityBased(Finder aFinder) {
 		super(aFinder);
+		
+		try {
+			Properties properties = new Properties();
+			BufferedInputStream stream = new BufferedInputStream(new FileInputStream("src/main/resources/index.properties"));
+			properties.load(stream);
+			stream.close();
+			
+			FREQUENCY = new BigInteger(properties.getProperty("frequency"));
+		} catch (Exception e) {
+			FREQUENCY = new BigInteger("143782944956");
+		}
 	}
 	
 	@Override
@@ -81,7 +96,7 @@ public class ProbabilityBased extends AbstractRanker implements IRankListAndTree
 		float result = 0;
 		
 		for (SplitElement elem : split.getSplits()) {
-			result += -1 * Math.log(this.freq(elem).doubleValue() / FREQUENCY);
+			result += -1 * Math.log(this.freq(elem).doubleValue() / FREQUENCY.doubleValue());
 		}
 		
 		return result;

@@ -11,8 +11,15 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.ranking.ProbabilityBas
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.Finder;
 
+/**
+ * Uses list based ranking methods.
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
 public class NounDecompoundingListAnnotator extends AbstractNounDecompoundAnnotator {
 
+	/**
+	 * All possible list ranker
+	 */
 	public enum Ranker {
 		FREQUENCY, MUTUAL_INFORMATION, PROBABILITY
 	}

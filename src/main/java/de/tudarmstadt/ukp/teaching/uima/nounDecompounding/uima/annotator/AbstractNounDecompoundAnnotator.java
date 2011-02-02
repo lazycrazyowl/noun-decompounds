@@ -20,19 +20,27 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.LeftToRightSp
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.uima.type.SplittedToken;
 
+/**
+ * Abstract Noun Decompound Annotator
+ * 
+ * Makes the most of the work. But ranking is
+ * done by subclasses
+ * 
+ * @author Jens Haase <je.haase@googlemail.com>
+ */
 public abstract class AbstractNounDecompoundAnnotator extends
 		JCasAnnotator_ImplBase {
 
 	public static final String PARAM_INDEX = "index";
-	@ConfigurationParameter(name=PARAM_INDEX, mandatory=true)
+	@ConfigurationParameter(name=PARAM_INDEX, mandatory=true, description="The path to the lucene index")
 	private String indexPath;
 	
 	public static final String PARAM_RANKER = "ranker";
-	@ConfigurationParameter(name=PARAM_RANKER, mandatory=false, defaultValue="FREQUENCY")
+	@ConfigurationParameter(name=PARAM_RANKER, mandatory=false, defaultValue="FREQUENCY", description="The used ranker implementaion. See AbstractNounDecompoundAnnotator.Ranker for possible values")
 	private String rankerName;
 	
 	public static final String PARAM_TOKEN_CLASS = "tokenClassName";
-	@ConfigurationParameter(name=PARAM_TOKEN_CLASS, mandatory=true)
+	@ConfigurationParameter(name=PARAM_TOKEN_CLASS, mandatory=true, description="Classname of the use token annotation. (e.g. path.to.package.Token)")
 	private String tokenType;
 	
 	private ISplitAlgorithm splitter;
