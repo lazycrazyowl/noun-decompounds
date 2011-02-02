@@ -100,6 +100,7 @@ public class LuceneIndexer {
 			try {
 				IndexWriter writer = new IndexWriter(FSDirectory.open(this.output), new StandardAnalyzer(Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
 				writer.setMaxBufferedDocs(10000);
+				writer.setRAMBufferSizeMB(512);
 				
 				int i = 0;
 				for (File file: files) {
