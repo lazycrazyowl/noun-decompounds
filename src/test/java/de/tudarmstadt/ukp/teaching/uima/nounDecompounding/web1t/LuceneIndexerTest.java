@@ -41,8 +41,8 @@ import org.junit.Test;
 public class LuceneIndexerTest {
 
 	File source = new File("src/test/resources/n-grams");
-	File index = new File("target/test/LuceneIndexer");
-	File targetIndex = new File("target/test/LuceneIndexer/0");
+	File index = new File("target/test/index");
+	File targetIndex = new File("target/test/index/0");
 	
 	@Before
 	public void setUp() throws Exception {

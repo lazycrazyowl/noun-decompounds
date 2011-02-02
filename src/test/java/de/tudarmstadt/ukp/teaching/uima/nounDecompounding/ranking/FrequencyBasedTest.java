@@ -41,7 +41,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
 public class FrequencyBasedTest {
 
 	static File source = new File("src/test/resources/ranking/n-grams");
-	static File index = new File("src/test/resources/ranking/index");
+	static File index = new File("target/test/index");
 	
 	@BeforeClass
 	public static void createIndex() throws Exception {
@@ -90,23 +90,28 @@ public class FrequencyBasedTest {
 	
 	@Test
 	public void testMain() {
-		String[] args = new String[] {"--luceneIndex", "src/test/resources/ranking/index", "--limit", "2"};
+		String[] args = new String[] {"--luceneIndex=target/test/index", "--limit=2"};
 		
 		try {
 			FrequencyBased.main(args);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			Assert.assertTrue(false);
 		}
 		
 		Assert.assertTrue(true); // No exception thrown
 	}
 	
 	@AfterClass
-	public static void removeIndex() {
-		for (File f: index.listFiles()) {
+	public static void tearDown() throws Exception {
+		// Delete index again
+		for (File f : index.listFiles()) {
+			for (File _f: f.listFiles()) {
+				_f.delete();
+			}
 			f.delete();
 		}
+		
 		index.delete();
 	}
 }

@@ -27,8 +27,6 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 
@@ -37,17 +35,14 @@ public class FinderTest {
 	File source = new File("src/test/resources/n-grams");
 	File index = new File("target/test/LuceneIndexer");
 	
-	@Before
-	public void setUp() throws Exception {
+	@Test
+	public void testFinder1() throws Exception {
 		index.mkdirs();
 		
 		// Create index
-		LuceneIndexer indexer = new LuceneIndexer(source, index, 2);
+		LuceneIndexer indexer = new LuceneIndexer(source, index);
 		indexer.index();
-	}
-	
-	@Test
-	public void testFinder() throws Exception {
+		
 		Finder f = new Finder(index);
 		// Search and check if data is correct
 		List<NGram> result = f.find("couch");
@@ -67,16 +62,52 @@ public class FinderTest {
 		
 		result = f.find("relax");
 		Assert.assertEquals(3, result.size());
-	}
-	
-	@After
-	public void tearDown() throws Exception {
+		
 		// Delete index again
-		for (File f : index.listFiles()) {
-			for (File _f: f.listFiles()) {
+		for (File file : index.listFiles()) {
+			for (File _f: file.listFiles()) {
 				_f.delete();
 			}
-			f.delete();
+			file.delete();
+		}
+		
+		index.delete();
+	}
+	
+	@Test
+	public void testFinder2() throws Exception {
+		index.mkdirs();
+		
+		// Create index
+		LuceneIndexer indexer = new LuceneIndexer(source, index, 2);
+		indexer.index();
+		
+		Finder f = new Finder(index);
+		// Search and check if data is correct
+		List<NGram> result = f.find("couch");
+		Assert.assertEquals(1, result.size());
+		Assert.assertEquals("relax on the couch", result.get(0).getGram());
+		Assert.assertEquals(4, result.get(0).getN());
+		Assert.assertEquals(100, result.get(0).getFreq());
+		
+		result = f.find("relax couch");
+		Assert.assertEquals(1, result.size());
+		Assert.assertEquals("relax on the couch", result.get(0).getGram());
+		Assert.assertEquals(4, result.get(0).getN());
+		Assert.assertEquals(100, result.get(0).getFreq());
+		
+		result = f.find("relax");
+		Assert.assertEquals(3, result.size());
+		
+		result = f.find("relax");
+		Assert.assertEquals(3, result.size());
+		
+		// Delete index again
+		for (File file : index.listFiles()) {
+			for (File _f: file.listFiles()) {
+				_f.delete();
+			}
+			file.delete();
 		}
 		
 		index.delete();

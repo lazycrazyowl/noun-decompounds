@@ -91,8 +91,11 @@ public class Finder implements IDictionary {
 	 */
 	private boolean checkForIndex(File indexFolder) {
 		File[] files = indexFolder.listFiles();
-		boolean result = false;
+		if (files == null) {
+			return false;
+		}
 		
+		boolean result = false;
 		for (File file : files) {
 			if (file.isFile() && file.getName().startsWith("segments")) {
 				result = true;

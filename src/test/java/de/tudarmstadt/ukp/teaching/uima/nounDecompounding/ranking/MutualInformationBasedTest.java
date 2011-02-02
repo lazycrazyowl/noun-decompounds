@@ -42,7 +42,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
 public class MutualInformationBasedTest {
 
 	static File source = new File("src/test/resources/ranking/n-grams-2");
-	static File index = new File("src/test/resources/ranking/index");
+	static File index = new File("target/test/index");
 	
 	@BeforeClass
 	public static void createIndex() throws Exception {
@@ -92,11 +92,30 @@ public class MutualInformationBasedTest {
 		Assert.assertEquals(s3, result);
 	}
 	
+	@Test
+	public void testMain() {
+		String[] args = new String[] {"--luceneIndex=target/test/index", "--limit=2"};
+		
+		try {
+			ProbabilityBased.main(args);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.assertTrue(false);
+		}
+		
+		Assert.assertTrue(true); // No exception thrown
+	}
+	
 	@AfterClass
-	public static void removeIndex() {
-		for (File f: index.listFiles()) {
+	public static void tearDown() throws Exception {
+		// Delete index again
+		for (File f : index.listFiles()) {
+			for (File _f: f.listFiles()) {
+				_f.delete();
+			}
 			f.delete();
 		}
+		
 		index.delete();
 	}
 }

@@ -37,7 +37,7 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.web1t.LuceneIndexer;
 public class TotalFreqAmountTest {
 
 	File source = new File("src/test/resources/n-grams");
-	File index = new File("target/test/LuceneIndexer");
+	static File index = new File("target/test/index");
 	
 	@Before
 	public void setUp() throws Exception {
