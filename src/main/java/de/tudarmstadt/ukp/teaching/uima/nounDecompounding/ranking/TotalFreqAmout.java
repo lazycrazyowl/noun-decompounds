@@ -135,12 +135,12 @@ public class TotalFreqAmout {
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd;
 		try {
-			cmd = parser.parse(AbstractRanker.basicOptions(), args);
+			cmd = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.err.println( "Error: " + e.getMessage() );
 			
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("countTotalFreq", AbstractRanker.basicOptions());
+			formatter.printHelp("countTotalFreq", options);
 			return;
 		}
 		

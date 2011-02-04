@@ -58,16 +58,18 @@ public class CouchDbExporterTest {
 		CouchDbConnector db = new StdCouchDbConnector(dbName, dbInstance);
 		
 		// Test connection
+		List<String> dbs;
 		try {
-			List<String> dbs = dbInstance.getAllDatabases();
+			dbs = dbInstance.getAllDatabases();
 		} catch (DbAccessException e) {
 			// Skip test
 			return;
 		}
 		
+		if (dbs.contains(dbName)) dbInstance.deleteDatabase(dbName);
 		
 		try {
-			CouchDbExport exporter = new CouchDbExport(new CcorpusReader(new File("src/test/resources/ccorpus.txt")), dbName, true);
+			CouchDbExport exporter = new CouchDbExport(new CcorpusReader(new File("src/test/resources/ccorpus.txt")), db);
 			exporter.export(algo, 10);
 			
 			Assert.assertEquals(10l, db.getDbInfo().getDocCount());

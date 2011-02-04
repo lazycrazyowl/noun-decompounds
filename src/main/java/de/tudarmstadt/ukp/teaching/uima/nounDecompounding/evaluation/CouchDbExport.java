@@ -30,6 +30,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
@@ -59,17 +66,13 @@ import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.trie.ValueNode;
  */
 public class CouchDbExport {
 	
-	private CouchDbInstance dbInstance;
 	private CcorpusReader reader;
 	private CouchDbConnector db;
 
-	public CouchDbExport(CcorpusReader aCcorpusReader, String dbName, boolean clearDatabase) {
-		HttpClient httpClient = new StdHttpClient.Builder().build();
-		this.dbInstance = new StdCouchDbInstance(httpClient);
+	public CouchDbExport(CcorpusReader aCcorpusReader, CouchDbConnector dbCon) {
 		this.reader = aCcorpusReader;
 		
-		this.db = new StdCouchDbConnector(dbName, this.dbInstance);
-		if (clearDatabase && this.dbInstance.getAllDatabases().contains(dbName)) this.dbInstance.deleteDatabase(dbName);
+		this.db = dbCon;
 		db.createDatabaseIfNotExists();
 	}
 	
@@ -161,14 +164,57 @@ public class CouchDbExport {
 		return s;
 	}
 	
+	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
+		Options options = new Options();
+		options.addOption(OptionBuilder.withLongOpt("host")
+				.withDescription("(optional) The couchdb host. default: 127.0.0.1")
+				.hasArg().create());
+		options.addOption(OptionBuilder.withLongOpt("port")
+				.withDescription("(optional) The couchdb port. default: 5984")
+				.hasArg().create());
+		options.addOption(OptionBuilder.withLongOpt("username")
+				.withDescription("(optional) The couchdb username. default: <empty>")
+				.hasArg().create());
+		options.addOption(OptionBuilder.withLongOpt("password")
+				.withDescription("(optional) The couchdb password. default: <empty>")
+				.hasArg().create());
+		options.addOption(OptionBuilder.withLongOpt("dbname")
+				.withDescription("(optional) The couchdb database name. default: noun_decompounding")
+				.hasArg().create());
+		options.addOption(OptionBuilder.withLongOpt("limit")
+				.withDescription("(optional) The amount of documents you want to export. default: all")
+				.hasArg().create());
+		
+		CommandLineParser parser = new PosixParser();
+		CommandLine cmd;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println( "Error: " + e.getMessage() );
+			
+			HelpFormatter formatter = new HelpFormatter();
+			formatter.printHelp("countTotalFreq", options);
+			return;
+		}
+		String host = (cmd.hasOption("host")) ? cmd.getOptionValue("host") : "127.0.0.1";
+		int port = Integer.parseInt((cmd.hasOption("port")) ? cmd.getOptionValue("port") : "5984");
+		String username = (cmd.hasOption("username")) ? cmd.getOptionValue("username") : "";
+		String password = (cmd.hasOption("password")) ? cmd.getOptionValue("password") : "";
+		String dbName = (cmd.hasOption("dbname")) ? cmd.getOptionValue("dbname") : "";
+		int limit = (cmd.hasOption("limit")) ? Integer.parseInt(cmd.getOptionValue("limit")) : Integer.MAX_VALUE;
+		
 		IDictionary dict = new IGerman98Dictionary(new File("src/main/resources/de_DE.dic"), new File("src/main/resources/de_DE.aff"));
 		LinkingMorphemes morphemes = new LinkingMorphemes(new File("src/main/resources/linkingMorphemes.txt"));
 		LeftToRightSplitAlgorithm algo = new LeftToRightSplitAlgorithm(dict, morphemes);
 		
+		HttpClient httpClient = new StdHttpClient.Builder().host(host).port(port).username(username).password(password).build();
+		CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
+		CouchDbConnector db = new StdCouchDbConnector(dbName, dbInstance);
+		
 		try {
-			CouchDbExport exporter = new CouchDbExport(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")), "noun_decompounding", true);
-			exporter.export(algo, 20000);
+			CouchDbExport exporter = new CouchDbExport(new CcorpusReader(new File("src/main/resources/evaluation/ccorpus.txt")), db);
+			exporter.export(algo, limit);
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

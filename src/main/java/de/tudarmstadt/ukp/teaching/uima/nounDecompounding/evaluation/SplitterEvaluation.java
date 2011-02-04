@@ -57,8 +57,6 @@ public class SplitterEvaluation {
 	 */
 	public float evaluate(ISplitAlgorithm algo, int limit) {
 		try {
-			String line;
-			String[] data;
 			Split split;
 			List<Split> algoSplits;
 			
