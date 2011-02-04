@@ -27,7 +27,6 @@ import java.util.List;
 
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.ISplitAlgorithm;
 import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.Split;
-import de.tudarmstadt.ukp.teaching.uima.nounDecompounding.splitter.old.ISplitAlgorithmV1;
 
 /**
  * Evaluates the splitting results with the ccorpus of Marek
@@ -121,67 +120,5 @@ public class SplitterEvaluation {
 	 */
 	public float evaluate(ISplitAlgorithm algo) {
 		return this.evaluate(algo, 0);
-	}
-	
-	@Deprecated
-	public float evaluate(ISplitAlgorithmV1 algo) {
-		return this.evaluate(algo, 0);
-	}
-	
-	@Deprecated
-	public float evaluate(ISplitAlgorithmV1 algo, int limit) {
-		try {
-			String line;
-			String[] data;
-			Split split;
-			List<Split> algoSplits;
-			
-			int total = 0, correct = 0, correctWithoutMorpheme = 0;
-			
-			while ((split = reader.readSplit()) != null) {
-				// Prepare data
-				algoSplits = algo.split(split.getWord());
-				
-				// Try to find
-				boolean found = false;
-				for (Split s : algoSplits) {
-					if (split.equals(s)) {
-						// We found a match. Increment correct and break loop
-						correct++;
-						found = true;
-						break;
-					}
-				}
-				
-				boolean foundWithoutMorpheme = false;
-				for (Split s : algoSplits) {
-					if (split.equalWithoutMorpheme(s)) {
-						correctWithoutMorpheme++;
-						foundWithoutMorpheme = true;
-						break;
-					}
-				}
-				
-				// Print errors for wrong
-				if (!found) System.err.println("Not found "+ ((foundWithoutMorpheme) ? "(but without morpheme)" : "") +": " + split.getWord() + "\t Correct one is: " + split.toString() + "\t Yours: " + algoSplits);
-				
-				// Increment total numbers
-				total++;
-				
-				if (limit > 0 && total > limit) {
-					break;
-				}
-			}
-			
-			System.out.println("Correct without morphemes: " + ((float) correctWithoutMorpheme / (float) total));
-			
-			// Return result
-			return (float) correct / (float) total;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return Float.NaN;
 	}
 }
