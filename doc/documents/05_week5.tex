@@ -46,7 +46,7 @@
 \section{Work done in the last week}
 
 \subsection{Tree visualization}
-After refactoring the split algorithm in the last week, the algorithm will now return a tree instead of a list. The tree can now be visualized. For that I created 20,000 split with the current implementation. All trees are converted to a \texttt{JSON} structure and stored in a CouchDB Database. With the help of JQuery (\url{http://jquery.com/}) and Javascript InfoVis Toolkit (\url{http://thejit.org/}) I created a little web application. It can be see on \url{http://jenshaase.couchone.com/noun_decompounding/_design/tree/index.html}. The code of the web application can be found in \texttt{src/main/couchapp}. To install the application you need to install CouchDB and \texttt{node.couchapp.js} from \url{ https://github.com/mikeal/node.couchapp.js}.
+After refactoring the split algorithm in the last week, the algorithm will now return a tree instead of a list. The tree can now be visualized. For that I created 20,000 split with the current implementation.
 
 \subsection{Improving splitting algorithm}
 In the next step i want to improve the current splitting algorithm. In the last week we had a recall of 0.47 with morphemes. I added a few small improvements to generate more words with different morphemes. Also the list of morphemes was updated. It contains now all morphemes that appear in the evaluation corpus.

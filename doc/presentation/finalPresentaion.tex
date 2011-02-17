@@ -1,0 +1,351 @@
+%%%
+%%% Copyright (c) 2010 Jens Haase <je.haase@googlemail.com>
+%%%
+%%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%%% of this software and associated documentation files (the "Software"), to deal
+%%% in the Software without restriction, including without limitation the rights
+%%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%%% copies of the Software, and to permit persons to whom the Software is
+%%% furnished to do so, subject to the following conditions:
+%%%
+%%% The above copyright notice and this permission notice shall be included in
+%%% all copies or substantial portions of the Software.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%%% THE SOFTWARE.
+%%%
+
+\documentclass[accentcolor=tud9b, colorbacktitle, inverttitle]{tudbeamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fontenc}
+% \usepackage{graphicx}
+\usepackage{url}
+% \usepackage{cite}
+% \usepackage{longtable}
+\usepackage{listings}
+% \usepackage{wrapfig}
+% \usepackage[numbers]{natbib}
+
+\begin{document}
+
+\author{Jens Haase} \title{Analyzing German Noun Compounds using a
+  Web-Scale Dataset -- Final presentation} \subtitle{UIMA Software
+  Project WS 2010/2011}
+
+\begin{titleframe}
+\end{titleframe}
+
+\begin{frame}
+  \frametitle{Outline}
+  \begin{itemize}
+    \item Motivation
+    \item Problem definition
+    \item Splitting algorithm
+    \item Ranking algorithm
+    \item Lessons learned / Conclusion
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Motivation}
+  \begin{block}{Let's start with an experiment}
+  \begin{itemize}
+    \item Take a search engine
+    \item Search for: \emph{Blumensträuße} (flower bouquet)
+    \item As result you will receive documents with the word \emph{Blumensträuße}
+    \item You will also see document with the words \emph{Blumen} (flower) and \emph{Sträuße}
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{Result}
+  \begin{itemize}
+    \item The search engine is intelligent and knows that \emph{Blumensträuße} is a noun-compound
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Problem definition (1) - Noun Compounding}
+
+  \begin{block}{Definition}
+    A noun compound word is the combination of one or more individual words to a new word
+  \end{block}
+
+  \begin{block}{Example}
+    Blumensträuße -> Blumen + Sträuße
+  \end{block}
+
+  \begin{itemize}
+    \item Compounds are formed with nouns, verbs and adjectives.
+    \item Compound words can be compound with other
+    \item Linking morphemes are added between words:
+      \emph{Tag(es)+ration}
+    \item Different context for different splits: \emph{Tag(es)+ration}
+      vs. \emph{Tag(es)+rat+ion}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Problem definition (2) - Noun Decompounding}
+
+  \begin{block}{How to split a word? \cite[Alfonseca et al.]{alf2008}}
+    \begin{enumerate}
+      \item Calculate every possible way of splitting a word in one or
+        more parts
+      \item Score those parts according to some weighting function
+      \item Take the highest-scoring decomposition. If it contains one
+        part, it means that the word in not a compound.
+    \end{enumerate}
+  \end{block}
+
+  \begin{itemize}
+    \item The algorithm for task 1 and task 2 two are nearly independent
+    \item But results of task 2 can never be better the result of task 1
+    \item Task 3 is the combination of task 1 and task 2
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Splitting Algorithm (1) - Requirements}
+  \begin{block}{Problem 1}
+    How do we know when a word starts or ends?
+  \end{block}
+  \begin{block}{Solution}
+    \begin{itemize}
+      \item Use a dictionary
+      \item The following algorithm use the IGerman98 dictionary. This is part of most spell-checkers today.
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Problem 2}
+    How to evaluate?
+  \end{block}
+  \begin{block}{Solution}
+    \begin{itemize}
+      \item Use a Marek' corpus \cite[Marek]{marek} (around 160,000 examples) 
+      \item If the correct split in the list of all possible splits we have a correct result
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Splitting Algorithm (2) - Left to right algorithm}
+
+\begin{itemize}
+  \item Walk from left to right through the word an check if left part is a correct word
+  \item Right part can be an \emph{unword}
+  \item Result of real implementation returns a tree -> can be visualized
+\end{itemize}
+
+\begin{lstlisting}
+function split(word)
+  result = List()
+  for (i = 0..word.len)
+    left = word[0..i+1]
+    right = word[i+1..word.len]
+
+    if (Dictionary.contains(left)
+        and (right.len > 2 or right.len == 0))
+      result += (left, right)
+
+  return result
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Splitting Algorithm (3) - Data driven algorithm}
+\begin{itemize}
+  \item Uses ``statistics'' of the dictionary
+  \item With statistics I mean to put the dictionary in a trie.
+  \item Example extracted from \cite[Martha Larson et al.]{dd}
+\end{itemize}
+
+\begin{center}
+  \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+    \hline
+    f&r&i&e&d&e&n&s&p&o&l&i&t&i&k \\ \hline
+    -&-&39&29&29&25&24&23&3&1&1&1&1&1&1 \\ \hline
+    1&1&1&1&1&2&7&37&88&89&89&92&99&-&- \\ \hline
+  \end{tabular}
+
+  \vspace{10pt}
+
+  \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+    \hline
+    f&r&i&e&d&e&n&s&p&o&l&i&t&i&k \\ \hline
+    -&-&-&10&0&4&1&1&20&2&0&0&0&0&0 \\ \hline
+    0&0&0&0&0&5&30&51&1&0&3&7&-&-&- \\ \hline
+  \end{tabular}
+
+  \vspace{10pt}
+
+  \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+    \hline
+    f&r&i&e&d&e&n&s&p&o&l&i&t&i&k \\ \hline
+    -&-&-&-& &*& & &*& & & & & &  \\ \hline
+     & & & & & & &*& & & &-&-&-&- \\ \hline
+  \end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Splitting Algorithm (4) - Evaluation}
+\begin{tabular}{| l | l | l |}
+  \hline
+  \textbf{Algorithm}  & \textbf{Correct with morphemes} & \textbf{Correct without morphemes} \\ \hline
+  Left to right & 0.813 & 0.888 \\ \hline
+  Data driven & 0.16 & 0.41 \\ \hline
+\end{tabular}
+
+\begin{block}{Legend}
+  \begin{itemize}
+    \item Correct \emph{without} morphemes means that only the splits are at the correct position, but the morphemes are not set correctly
+    \item Correct \emph{with} morphemes means that the splits are at the correct position and also the morphemes are set correctly
+  \end{itemize}
+\end{block}
+
+\begin{block}{Result}
+  \begin{itemize}
+    \item Left to right algorithm works a lot better then the other.
+    \item Following always use the left to right algorithm
+  \end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ranking algorithm (1) - Requirements}
+  \begin{block}{Problem 1}
+    To rank we need knowledge about the words
+  \end{block}
+  \begin{block}{Solution}
+    The Google Web1T corpus has frequency information about a lot of n-grams.
+  \end{block}
+
+  \vspace{30pt}
+
+  \begin{block}{Problem 2}
+    How to search the n-grams?
+  \end{block}
+  \begin{block}{Solution}
+    A lucene index was created. It has a size of 12.8 GB and is very slow on a normal hard disk
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ranking algorithm (2) - Frequency based \cite[Alfonseca et al.]{alf2008}}
+
+  \begin{equation}
+    F_s = \prod_{s_i \in S} freq(s_i))^{\frac{1}{|S|}}
+  \end{equation}
+
+  \begin{itemize}
+    \item \emph{S}: The split with split elements in it
+    \item \emph{freq}: Searches for n-grams with the given words and returns the frequency value from the corpus.
+
+    \vspace{10pt}
+    \item For each split $F_s$ is calculated.
+    \item The split with the highest $F_s$ wins
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ranking algorithm (3) - Probability based \cite[Alfonseca et al.]{alf2008}}
+
+  \begin{equation}
+    P_s = \sum_{s_i \in S} -log(\frac{freq(s_i)}{F})
+  \end{equation}
+
+  \begin{itemize}
+    \item \emph{S}: The split with split elements in it
+    \item \emph{freq}: Searches for n-grams with the given words and returns the frequency value from the corpus.
+    \item \emph{F}: The total amount of frequency values in the corpus (add all values)
+
+    \vspace{10pt}
+    \item For each split $P_s$ is calculated.
+    \item The split with the lowest $P_s$ wins
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ranking algorithm (4) - Mutual information based \cite[Alfonseca et al.]{alf2008}}
+
+  \begin{equation}
+    M(w_1, w_2) = log_2(\frac{F \times freq(w_1, w_2)}{freq(w_1) \times freq(w_2)})
+  \end{equation}
+
+  \begin{itemize}
+    \item \emph{S}: The split with split elements in it
+    \item \emph{freq}: Searches for n-grams with the given words and returns the frequency value from the corpus.
+    \item \emph{F}: The total amount of frequency values in the corpus (add all values)
+
+    \vspace{10pt}
+    \item $M$ will be calculated for neighbor pairs in the split
+    \item The value of a split is the average of all $M$
+    \item The split with the highest averaged $M$ wins
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ranking algorithm (5) - Evaluation}
+
+    \begin{tabular}{|l|l||l|l|l|}
+      \hline
+      \textbf{Algorithm} & \textbf{Correct tree} & \textbf{Correct@1} & \textbf{Correct@2} & \textbf{Correct@3} \\ \hline
+      Frequency & \textbf{0.523  (0.720)} & 0.508 (0.703) & 0.665 (0.785) & 0.726 (0.829) \\ \hline
+      Probability & 0.182  (0.252) & 0.184 (0.256) & 0.510 (0.658) & 0.628 (0.743) \\ \hline
+      MI & 0.295 (0.442) & 0.369 (0.542) & 0.516 (0.666) & 0.587 (0.737) \\ \hline
+    \end{tabular}
+
+    \begin{itemize}
+      \item \emph{Correct tree}: Correct result when ranking on a tree (subset of a list)
+      \item \emph{Correct@1}: The first of the ranked list is correct
+      \item \emph{Correct@1}: The first or second of the ranked list is correct
+      \item \emph{Correct@1}: The first, second or third of the ranked list is correct
+      \item Values in brackets are correct without morphemes
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Lessons Learned / Conclusion}
+
+  \begin{itemize}
+    \item Lucene indexes on normal disks are very SLOW
+    \item I need a better machine ;)
+
+    \vspace{10pt}
+    \item Weekly documentation help to write final report, and to think about next steps
+
+    \vspace{10pt}
+    \item Simplest algorithm returned best results
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{End}
+  
+\begin{block}{Questions}
+  Ask now, or later.
+\end{block}
+
+\begin{block}{More information}
+  Code, documentation and slides are available on github: \url{https://github.com/jenshaase/noun-decompounds}
+\end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{References}
+  
+  \bibliographystyle{alpha}
+  % \bibliographystyle{ieeetr}
+  \bibliography{finalPresentation}
+
+\end{frame}
+
+\end{document}
